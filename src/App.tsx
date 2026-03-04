@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
 
 function AppRoutes() {
   const { pathname } = useLocation()
-  const { profile, loading, isAuthenticated, loadError } = useAuth()
+  const { loading, isAuthenticated, loadError } = useAuth()
 
   // En /login y /register: mostrar formulario aunque cargue (evita bloqueo)
   const showAuthForms = pathname === '/login' || pathname === '/register'

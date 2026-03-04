@@ -129,21 +129,23 @@ export function useAuth() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', apikey: h.key, Authorization: `Bearer ${h.token}` },
                 body: '{}',
-              }).then(() => {
+              }).then(() =>
                 loadProfile().then((p2) => {
                   console.log('[MakeLove Paso 3] Perfil después de ensure_my_profile:', p2 ? `${p2.name}, ${p2.points_balance} pts` : 'null')
                   setProfile(p2)
                 })
-              }).catch((e) => {
+              ).catch((e: unknown) => {
                 console.error('[MakeLove] ensure_my_profile:', e)
                 setProfile(null)
               })
             } else {
-              client.rpc('ensure_my_profile').then(() => {
-                loadProfile().then((p2) => {
-                  setProfile(p2)
-                })
-              }).catch((e) => {
+              Promise.resolve(
+                client.rpc('ensure_my_profile').then(() =>
+                  loadProfile().then((p2) => {
+                    setProfile(p2)
+                  })
+                )
+              ).catch((e: unknown) => {
                 console.error('[MakeLove] ensure_my_profile:', e)
                 setProfile(null)
               })

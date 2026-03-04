@@ -1,7 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getRestHeaders } from '@/lib/supabase'
-import type { ActionClaim } from '@/types'
-
 const SELECT_CLAIMS =
   '*,action_types(id,name,points_value),claimer:users!claimer_id(id,name,email)'
 

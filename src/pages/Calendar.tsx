@@ -5,6 +5,7 @@ import { useActionRecords } from '@/hooks/useActionRecords'
 import { useActionTypes } from '@/hooks/useActions'
 import { useUsers } from '@/hooks/useUsers'
 import { formatDate } from '@/lib/utils'
+import type { ActionRecordWithDetails } from '@/types'
 
 export function Calendar() {
   const { profile, isAdmin } = useAuth()
@@ -81,10 +82,10 @@ export function Calendar() {
         </div>
       ) : (
         <div className="space-y-2">
-          {records.map((r: { id: string; performed_at: string; action_types?: { name: string }; users?: { name: string } }) => (
+          {records.map((r: ActionRecordWithDetails) => (
             <Link
               key={r.id}
-              to={`/actions/${(r as { action_type_id: string }).action_type_id}`}
+              to={`/actions/${r.action_type_id}`}
               className="block p-4 bg-app-surface rounded-xl border border-app-border hover:border-app-border-hover"
             >
               <div className="flex justify-between items-center">
