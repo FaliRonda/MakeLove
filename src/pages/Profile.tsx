@@ -134,7 +134,7 @@ export function Profile() {
               variant="outline"
               size="sm"
               onClick={() => registerPush()}
-              disabled={isRegistering || pushStatus === 'unsupported'}
+              disabled={isRegistering}
             >
               {isRegistering ? 'Activando…' : 'Activar notificaciones'}
             </Button>
