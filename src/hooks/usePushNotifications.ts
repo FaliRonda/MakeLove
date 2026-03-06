@@ -12,13 +12,13 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
 }
 
 export function usePushNotifications(userId: string | undefined) {
-  const [status, setStatus] = useState<'idle' | 'unsupported' | 'permission-denied' | 'subscribed' | 'error'>('idle')
+  const [status, setStatus] = useState<'idle' | 'unsupported' | 'vapid-missing' | 'permission-denied' | 'subscribed' | 'error'>('idle')
   const [isRegistering, setIsRegistering] = useState(false)
   const doneRef = useRef(false)
 
   const doRegister = useCallback(async () => {
     if (!userId || !VAPID_PUBLIC?.trim()) {
-      if (!VAPID_PUBLIC?.trim()) setStatus('unsupported')
+      if (!VAPID_PUBLIC?.trim()) setStatus('vapid-missing')
       return
     }
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -108,7 +108,7 @@ export function usePushNotifications(userId: string | undefined) {
 
   useEffect(() => {
     if (!userId || !VAPID_PUBLIC?.trim()) {
-      if (!VAPID_PUBLIC?.trim()) setStatus('unsupported')
+      if (!VAPID_PUBLIC?.trim()) setStatus('vapid-missing')
       return
     }
     if (doneRef.current) return

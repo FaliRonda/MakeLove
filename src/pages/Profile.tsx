@@ -127,7 +127,8 @@ export function Profile() {
             {pushStatus === 'idle' && 'Activa las notificaciones para recibir avisos en el móvil o el navegador.'}
             {pushStatus === 'permission-denied' && 'Has bloqueado las notificaciones. Actívalas en la configuración del navegador o del móvil para recibir avisos.'}
             {pushStatus === 'error' && 'No se pudo activar. Comprueba que el navegador permita notificaciones e inténtalo de nuevo.'}
-            {pushStatus === 'unsupported' && 'Tu navegador o esta app no soportan notificaciones push.'}
+            {pushStatus === 'vapid-missing' && 'Las notificaciones push no están configuradas en este despliegue. El equipo debe añadir la variable VITE_VAPID_PUBLIC_KEY en Netlify (o en el servidor donde se despliega) y volver a desplegar.'}
+            {pushStatus === 'unsupported' && 'Tu navegador o esta app no soportan notificaciones push (por ejemplo en HTTP o en modo incógnito).'}
           </p>
           {(pushStatus === 'idle' || pushStatus === 'permission-denied' || pushStatus === 'error') && (
             <Button
