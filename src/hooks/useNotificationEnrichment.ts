@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase, getRestHeaders } from '@/lib/supabase'
 import type { Notification } from '@/types'
 
-const CLAIM_SELECT = 'id,claimer:users!claimer_id(name),target:users!target_user_id(name),action_types(name)'
+const CLAIM_SELECT = 'id,status,claimer:users!claimer_id(name),target:users!target_user_id(name),action_types(name)'
 const REQUEST_SELECT = 'id,requester:users!requester_id(name),action_types(name)'
 
-export type ClaimEnrichment = { claimerName: string; targetName: string; actionName: string }
+export type ClaimEnrichment = { claimerName: string; targetName: string; actionName: string; status?: string }
 export type RequestEnrichment = { requesterName: string; actionName: string }
 
 function fetchClaims(ids: string[]): Promise<Record<string, ClaimEnrichment>> {
@@ -21,12 +21,13 @@ function fetchClaims(ids: string[]): Promise<Record<string, ClaimEnrichment>> {
       .then((rows: unknown[]) => {
         const map: Record<string, ClaimEnrichment> = {}
         for (const row of Array.isArray(rows) ? rows : []) {
-          const r = row as { id?: string; claimer?: { name?: string }; target?: { name?: string }; action_types?: { name?: string } }
+          const r = row as { id?: string; status?: string; claimer?: { name?: string }; target?: { name?: string }; action_types?: { name?: string } }
           if (r?.id) {
             map[r.id] = {
               claimerName: r.claimer?.name ?? 'Alguien',
               targetName: r.target?.name ?? 'alguien',
               actionName: r.action_types?.name ?? 'acción',
+              status: r.status,
             }
           }
         }
@@ -34,22 +35,23 @@ function fetchClaims(ids: string[]): Promise<Record<string, ClaimEnrichment>> {
       })
   }
   if (!supabase) return Promise.resolve({})
-  return supabase
-    .from('action_claims')
-    .select(CLAIM_SELECT)
-    .in('id', ids)
-    .then(({ data: rows, error }) => {
-      if (error || !rows) return {}
-      const map: Record<string, ClaimEnrichment> = {}
-      for (const r of rows as { id: string; claimer?: { name?: string }; target?: { name?: string }; action_types?: { name?: string } }[]) {
-        map[r.id] = {
-          claimerName: r.claimer?.name ?? 'Alguien',
-          targetName: r.target?.name ?? 'alguien',
-          actionName: r.action_types?.name ?? 'acción',
-        }
+  return (async () => {
+    const { data: rows, error } = await supabase
+      .from('action_claims')
+      .select(CLAIM_SELECT)
+      .in('id', ids)
+    if (error || !rows) return {}
+    const map: Record<string, ClaimEnrichment> = {}
+    for (const r of rows as { id: string; status?: string; claimer?: { name?: string }; target?: { name?: string }; action_types?: { name?: string } }[]) {
+      map[r.id] = {
+        claimerName: r.claimer?.name ?? 'Alguien',
+        targetName: r.target?.name ?? 'alguien',
+        actionName: r.action_types?.name ?? 'acción',
+        status: r.status,
       }
-      return map
-    })
+    }
+    return map
+  })()
 }
 
 function fetchRequests(ids: string[]): Promise<Record<string, RequestEnrichment>> {
@@ -77,21 +79,21 @@ function fetchRequests(ids: string[]): Promise<Record<string, RequestEnrichment>
       })
   }
   if (!supabase) return Promise.resolve({})
-  return supabase
-    .from('action_requests')
-    .select(REQUEST_SELECT)
-    .in('id', ids)
-    .then(({ data: rows, error }) => {
-      if (error || !rows) return {}
-      const map: Record<string, RequestEnrichment> = {}
-      for (const r of rows as { id: string; requester?: { name?: string }; action_types?: { name?: string } }[]) {
-        map[r.id] = {
-          requesterName: r.requester?.name ?? 'Alguien',
-          actionName: r.action_types?.name ?? 'acción',
-        }
+  return (async () => {
+    const { data: rows, error } = await supabase
+      .from('action_requests')
+      .select(REQUEST_SELECT)
+      .in('id', ids)
+    if (error || !rows) return {}
+    const map: Record<string, RequestEnrichment> = {}
+    for (const r of rows as { id: string; requester?: { name?: string }; action_types?: { name?: string } }[]) {
+      map[r.id] = {
+        requesterName: r.requester?.name ?? 'Alguien',
+        actionName: r.action_types?.name ?? 'acción',
       }
-      return map
-    })
+    }
+    return map
+  })()
 }
 
 export function useNotificationEnrichment(notifications: Notification[]) {

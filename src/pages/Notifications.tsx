@@ -43,7 +43,11 @@ function notificationMessage(
   if (referenceId && ['performed_for_request', 'performed_for_confirmed', 'performed_for_cancelled', 'performed_for_you_confirmed', 'performed_for_you_cancelled'].includes(type)) {
     const c = claimMap[referenceId]
     if (c) {
-      if (type === 'performed_for_request') return `${c.claimerName} indica que te ha hecho un ${c.actionName}. ¿Confirmas o cancelas?`
+      if (type === 'performed_for_request') {
+        if (c.status === 'confirmed') return `Has confirmado que ${c.claimerName} te ha hecho un ${c.actionName}.`
+        if (c.status === 'cancelled') return `Has cancelado el registro de que ${c.claimerName} te hizo un ${c.actionName}.`
+        return `${c.claimerName} indica que te ha hecho un ${c.actionName}. ¿Confirmas o cancelas?`
+      }
       if (type === 'performed_for_confirmed') return `${c.targetName} ha confirmado que le hiciste un ${c.actionName}. Has ganado 1.5× los puntos.`
       if (type === 'performed_for_cancelled') return `${c.targetName} ha cancelado tu registro de ${c.actionName} hacia él/ella.`
       if (type === 'performed_for_you_confirmed') return `Has confirmado que ${c.claimerName} te ha hecho un ${c.actionName}.`
