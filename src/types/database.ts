@@ -79,6 +79,7 @@ export interface Database {
           action_type_id: string
           performed_at: string
           notes: string | null
+          request_id: string | null
         }
         Insert: {
           id?: string
@@ -86,6 +87,7 @@ export interface Database {
           action_type_id: string
           performed_at?: string
           notes?: string | null
+          request_id?: string | null
         }
         Update: {
           id?: string
@@ -93,6 +95,7 @@ export interface Database {
           action_type_id?: string
           performed_at?: string
           notes?: string | null
+          request_id?: string | null
         }
       }
       action_requests: {

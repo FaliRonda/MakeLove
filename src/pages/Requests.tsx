@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { useActionRequests, usePendingRequestsForUser, useAcceptRequest, useRejectRequest, useCreateRequest, useCancelRequest } from '@/hooks/useRequests'
+import { useActionRequests, usePendingRequestsForUser, useAcceptRequest, useRejectRequest, useCreateRequest, useCancelRequest, useRevertRequest } from '@/hooks/useRequests'
 import { useActiveActionTypes } from '@/hooks/useActions'
 import { useUsers } from '@/hooks/useUsers'
 import { Button } from '@/components/ui/Button'
@@ -13,6 +13,7 @@ export function Requests() {
   const [createError, setCreateError] = useState<string | null>(null)
   const [targetUserId, setTargetUserId] = useState('')
   const [actionTypeId, setActionTypeId] = useState('')
+  const [revertRequestId, setRevertRequestId] = useState<string | null>(null)
 
   const { data: actionTypes = [] } = useActiveActionTypes()
   const { data: users = [] } = useUsers()
@@ -22,6 +23,7 @@ export function Requests() {
   const acceptRequest = useAcceptRequest()
   const rejectRequest = useRejectRequest()
   const cancelRequest = useCancelRequest()
+  const revertRequest = useRevertRequest()
   const createRequest = useCreateRequest()
 
   const resolvedRequests = allRequests
@@ -48,6 +50,16 @@ export function Requests() {
   const handleCancel = async (id: string) => {
     try {
       await cancelRequest.mutateAsync(id)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error')
+    }
+  }
+
+  const handleRevertConfirm = async () => {
+    if (!revertRequestId) return
+    try {
+      await revertRequest.mutateAsync(revertRequestId)
+      setRevertRequestId(null)
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error')
     }
@@ -191,6 +203,11 @@ export function Requests() {
                     </Button>
                   </div>
                 )}
+                {!isPending && (isTarget || isRequester) && (
+                  <Button size="sm" variant="outline" onClick={() => setRevertRequestId(req.id)} loading={revertRequest.isPending}>
+                    Revertir
+                  </Button>
+                )}
               </div>
             </div>
           )
@@ -199,6 +216,28 @@ export function Requests() {
           <p className="text-app-muted text-center py-8">No hay solicitudes</p>
         )}
       </div>
+
+      {revertRequestId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => !revertRequest.isPending && setRevertRequestId(null)}>
+          <div className="bg-app-surface rounded-2xl border border-app-border p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold text-app-foreground mb-2">Revertir solicitud</h3>
+            <p className="text-sm text-app-muted mb-4">
+              Se restablecerán los puntos que esta solicitud haya sumado o restado a los usuarios involucrados y se eliminará la solicitud del historial. Esta acción no se puede deshacer.
+            </p>
+            <p className="text-sm text-app-foreground mb-4">
+              ¿Quieres continuar?
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setRevertRequestId(null)} disabled={revertRequest.isPending}>
+                Cancelar
+              </Button>
+              <Button variant="danger" onClick={handleRevertConfirm} loading={revertRequest.isPending}>
+                Aceptar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
