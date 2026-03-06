@@ -9,6 +9,7 @@ export interface User {
   points_balance: number
   is_admin: boolean
   avatar_url: string | null
+  estado: string | null
   created_at: string
   updated_at: string
 }

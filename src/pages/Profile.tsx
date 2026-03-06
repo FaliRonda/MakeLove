@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import Cropper, { type Area } from 'react-easy-crop'
 import { useAuth } from '@/hooks/useAuth'
@@ -63,9 +63,13 @@ export function Profile() {
   const [latestAvatarUrl, setLatestAvatarUrl] = useState<string | null>(null)
   const [photoLightbox, setPhotoLightbox] = useState(false)
   const [historyLimit, setHistoryLimit] = useState(PAGE_SIZE)
+  const [statusInput, setStatusInput] = useState('')
 
   const isOwnProfile = !paramUserId || paramUserId === profile?.id
   const displayUser: User | null = isOwnProfile ? (profile ?? null) : (viewedUser ?? null)
+  useEffect(() => {
+    if (isOwnProfile && displayUser) setStatusInput(displayUser.estado ?? '')
+  }, [isOwnProfile, displayUser?.id, displayUser?.estado])
 
   const { data: actionRecords = [] } = useActionRecords({
     userId: displayUser?.id,
@@ -206,6 +210,39 @@ export function Profile() {
           <div>
             <dt className="text-sm text-app-muted">Nombre</dt>
             <dd className="font-medium text-app-foreground-dark">{displayUser.name}</dd>
+          </div>
+          <div>
+            <dt className="text-sm text-app-muted">Estado</dt>
+            {isOwnProfile ? (
+              <dd className="mt-1">
+                <input
+                  type="text"
+                  value={statusInput}
+                  onChange={(e) => setStatusInput(e.target.value)}
+                  placeholder="Escribe tu estado..."
+                  className="w-full rounded-lg border border-app-border bg-app-bg px-3 py-2 text-app-foreground placeholder:text-app-muted focus:border-app-accent focus:outline-none focus:ring-1 focus:ring-app-accent"
+                  maxLength={200}
+                  aria-label="Estado de perfil"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={async () => {
+                    if (profile?.id == null) return
+                    await updateUser.mutateAsync({ id: profile.id, estado: statusInput || null })
+                    refetchProfile()
+                  }}
+                  disabled={updateUser.isPending}
+                >
+                  {updateUser.isPending ? 'Guardando…' : 'Guardar estado'}
+                </Button>
+              </dd>
+            ) : (
+              <dd className="font-medium text-app-foreground-dark">
+                {displayUser.estado?.trim() ? displayUser.estado : '—'}
+              </dd>
+            )}
           </div>
           {isOwnProfile && (
             <div>
