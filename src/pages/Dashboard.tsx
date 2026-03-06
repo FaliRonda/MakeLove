@@ -25,13 +25,20 @@ export function Dashboard() {
 
   const ranking = [...users].sort((a, b) => b.points_balance - a.points_balance)
 
+  // En empate, todos muestran la posición más alta (ej: dos 2º en vez de 2º y 3º)
+  const positions = ranking.map((user, index) =>
+    index > 0 && user.points_balance === ranking[index - 1].points_balance
+      ? positions[index - 1]
+      : index + 1
+  )
+
   return (
     <div className="space-y-6">
       <div className="bg-app-surface rounded-2xl p-6 shadow-sm border border-app-border">
         <h2 className="text-lg font-semibold text-app-foreground mb-4">Ranking</h2>
         <div className="space-y-3">
           {ranking.map((user, index) => {
-            const position = index + 1
+            const position = positions[index]
             const isCurrentUser = user.id === profile?.id
             const isTop = position === 1
             const profilePath = isCurrentUser ? '/profile' : `/profile/${user.id}`
