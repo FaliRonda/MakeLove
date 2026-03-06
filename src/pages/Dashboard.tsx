@@ -45,7 +45,11 @@ export function Dashboard() {
                   <RankBadge position={position} />
                 </span>
                 <Avatar
-                  avatarUrl={user.avatar_url ?? null}
+                  avatarUrl={
+                    user.avatar_url
+                      ? `${user.avatar_url}?t=${user.updated_at || ''}`
+                      : null
+                  }
                   name={user.name}
                   size={isTop ? 'md' : 'sm'}
                   className={isTop ? 'shadow-lg' : ''}

@@ -17,6 +17,7 @@ export function Profile() {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+  const [latestAvatarUrl, setLatestAvatarUrl] = useState<string | null>(null)
 
   const onCropComplete = useCallback((_: Area, pixels: Area) => {
     setCroppedAreaPixels(pixels)
@@ -50,7 +51,9 @@ export function Profile() {
         .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
       if (uploadErr) throw uploadErr
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+      const newAvatarUrl = `${urlData.publicUrl}?t=${Date.now()}`
       await updateUser.mutateAsync({ id: profile.id, avatar_url: urlData.publicUrl })
+      setLatestAvatarUrl(newAvatarUrl)
       await refetchProfile()
       closeEditor()
     } catch (err) {
@@ -65,7 +68,12 @@ export function Profile() {
         <div className="mt-4 flex flex-col sm:flex-row items-start gap-6">
           <div className="flex flex-col items-center gap-2">
             <Avatar
-              avatarUrl={profile?.avatar_url ?? null}
+              avatarUrl={
+                latestAvatarUrl ||
+                (profile?.avatar_url
+                  ? `${profile.avatar_url}?t=${profile.updated_at || ''}`
+                  : null)
+              }
               name={profile?.name ?? 'Usuario'}
               size="lg"
             />
