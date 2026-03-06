@@ -197,3 +197,36 @@ export function useRejectRequest() {
     },
   })
 }
+
+export function useCancelRequest() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (requestId: string) => {
+      const h = getRestHeaders()
+      if (h) {
+        const res = await fetch(`${h.url}/rest/v1/rpc/cancel_request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: h.key, Authorization: `Bearer ${h.token}` },
+          body: JSON.stringify({ p_request_id: requestId }),
+        })
+        if (!res.ok) {
+          const text = await res.text()
+          let msg = `Error ${res.status}`
+          try {
+            const j = JSON.parse(text)
+            if (j?.message) msg = j.message
+          } catch { /* ignore */ }
+          throw new Error(msg)
+        }
+        return
+      }
+      if (!supabase) throw new Error('Supabase no configurado')
+      const { error } = await supabase.rpc('cancel_request', { p_request_id: requestId })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['action_requests'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
+  })
+}

@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type RequestStatus = 'pending' | 'accepted' | 'rejected' | 'expired'
+export type RequestStatus = 'pending' | 'accepted' | 'rejected' | 'expired' | 'cancelled'
 
 export interface Database {
   public: {
@@ -168,6 +168,7 @@ export interface Database {
       accept_request: { Args: { p_request_id: string }; Returns: void }
       reject_request: { Args: { p_request_id: string }; Returns: void }
       create_action_request: { Args: { p_target_user_id: string; p_action_type_id: string }; Returns: string }
+      cancel_request: { Args: { p_request_id: string }; Returns: void }
     }
   }
 }

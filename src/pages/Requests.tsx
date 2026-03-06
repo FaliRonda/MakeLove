@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { useActionRequests, usePendingRequestsForUser, useAcceptRequest, useRejectRequest, useCreateRequest } from '@/hooks/useRequests'
+import { useActionRequests, usePendingRequestsForUser, useAcceptRequest, useRejectRequest, useCreateRequest, useCancelRequest } from '@/hooks/useRequests'
 import { useActiveActionTypes } from '@/hooks/useActions'
 import { useUsers } from '@/hooks/useUsers'
 import { Button } from '@/components/ui/Button'
@@ -21,6 +21,7 @@ export function Requests() {
 
   const acceptRequest = useAcceptRequest()
   const rejectRequest = useRejectRequest()
+  const cancelRequest = useCancelRequest()
   const createRequest = useCreateRequest()
 
   const requestsToShow = tab === 'pending' ? pendingRequests : allRequests.filter((r: { target_user_id: string; requester_id: string }) => r.target_user_id === profile?.id || r.requester_id === profile?.id)
@@ -36,6 +37,14 @@ export function Requests() {
   const handleReject = async (id: string) => {
     try {
       await rejectRequest.mutateAsync(id)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error')
+    }
+  }
+
+  const handleCancel = async (id: string) => {
+    try {
+      await cancelRequest.mutateAsync(id)
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error')
     }
@@ -135,6 +144,7 @@ export function Requests() {
           reward_amount: number
         }) => {
           const isTarget = req.target_user_id === profile?.id
+          const isRequester = req.requester_id === profile?.id
           const isPending = req.status === 'pending'
           const expired = new Date(req.expires_at) < new Date()
 
@@ -155,9 +165,10 @@ export function Requests() {
                     req.status === 'pending' ? 'bg-amber-900/60 text-amber-200' :
                     req.status === 'accepted' ? 'bg-green-900/60 text-green-200' :
                     req.status === 'rejected' ? 'bg-red-900/60 text-red-200' :
+                    req.status === 'cancelled' ? 'bg-slate-600 text-slate-300' :
                     'bg-slate-700 text-slate-300'
                   }`}>
-                    {({ pending: 'Pendiente', accepted: 'Aceptado', rejected: 'Rechazado', expired: 'Caducado' })[req.status] ?? req.status}
+                    {({ pending: 'Pendiente', accepted: 'Aceptado', rejected: 'Rechazado', expired: 'Caducado', cancelled: 'Cancelada' })[req.status] ?? req.status}
                   </span>
                 </div>
                 {isTarget && isPending && !expired && (
@@ -167,6 +178,13 @@ export function Requests() {
                     </Button>
                     <Button size="sm" variant="danger" onClick={() => handleReject(req.id)} loading={rejectRequest.isPending}>
                       Rechazar
+                    </Button>
+                  </div>
+                )}
+                {isRequester && isPending && !expired && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => handleCancel(req.id)} loading={cancelRequest.isPending}>
+                      Cancelar solicitud
                     </Button>
                   </div>
                 )}
