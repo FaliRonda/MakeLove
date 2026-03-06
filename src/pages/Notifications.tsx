@@ -1,7 +1,8 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotifications, useMarkNotificationRead } from '@/hooks/useNotifications'
-import { useConfirmClaim, useCancelClaim } from '@/hooks/useClaims'
+import { usePendingClaimsForUser, useConfirmClaim, useCancelClaim } from '@/hooks/useClaims'
 import { formatDateTime } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 
@@ -27,6 +28,8 @@ function notificationMessage(type: string): string {
 export function Notifications() {
   const { profile } = useAuth()
   const { data: notifications = [], isLoading } = useNotifications(profile?.id)
+  const { data: pendingClaims = [] } = usePendingClaimsForUser(profile?.id)
+  const pendingClaimIds = useMemo(() => new Set(pendingClaims.map((c) => c.id)), [pendingClaims])
   const markRead = useMarkNotificationRead()
   const confirmClaim = useConfirmClaim()
   const cancelClaim = useCancelClaim()
@@ -81,7 +84,7 @@ export function Notifications() {
                   </p>
                   <p className="text-sm text-app-muted mt-1">{formatDateTime(n.created_at)}</p>
                 </div>
-                {n.type === 'performed_for_request' && n.reference_id && (
+                {n.type === 'performed_for_request' && n.reference_id && pendingClaimIds.has(n.reference_id) && (
                   <div className="flex gap-2 shrink-0">
                     <Button
                       size="sm"

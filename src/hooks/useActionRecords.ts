@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase, getRestHeaders } from '@/lib/supabase'
-import type { ActionRecord } from '@/types'
+import type { ActionRecordWithDetails } from '@/types'
 
-const SELECT_RECORDS = '*,action_types(id,name,points_value),users(id,name)'
+const SELECT_RECORDS = '*,action_types(id,name,points_value),users!user_id(id,name),target_user:users!target_user_id(id,name)'
 
 interface UseActionRecordsOptions {
   userId?: string
@@ -25,7 +25,7 @@ export function useActionRecords(options: UseActionRecordsOptions = {}) {
           order: 'performed_at.desc',
           limit: '500',
         })
-        if (userId) params.set('user_id', `eq.${userId}`)
+        if (userId) params.set('or', `user_id.eq.${userId},target_user_id.eq.${userId}`)
         if (actionTypeId) params.set('action_type_id', `eq.${actionTypeId}`)
         if (from) params.set('performed_at', `gte.${from.toISOString()}`)
         if (to) params.append('performed_at', `lte.${to.toISOString()}`)
@@ -34,20 +34,20 @@ export function useActionRecords(options: UseActionRecordsOptions = {}) {
         })
         if (!res.ok) return []
         const data = await res.json()
-        return (Array.isArray(data) ? data : []) as ActionRecord[]
+        return (Array.isArray(data) ? data : []) as ActionRecordWithDetails[]
       }
       if (!supabase) return []
       let q = supabase
         .from('action_records')
-        .select(`*,action_types(id,name,points_value),users(id,name)`)
+        .select(`*,action_types(id,name,points_value),users!user_id(id,name),target_user:users!target_user_id(id,name)`)
         .order('performed_at', { ascending: false })
-      if (userId) q = q.eq('user_id', userId)
+      if (userId) q = q.or(`user_id.eq.${userId},target_user_id.eq.${userId}`)
       if (actionTypeId) q = q.eq('action_type_id', actionTypeId)
       if (from) q = q.gte('performed_at', from.toISOString())
       if (to) q = q.lte('performed_at', to.toISOString())
       const { data, error } = await q.limit(500)
       if (error) throw error
-      return (data ?? []) as ActionRecord[]
+      return (data ?? []) as ActionRecordWithDetails[]
     },
     enabled: enabled && (!!getRestHeaders() || !!supabase),
   })

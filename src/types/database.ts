@@ -83,6 +83,8 @@ export interface Database {
           performed_at: string
           notes: string | null
           request_id: string | null
+          target_user_id: string | null
+          record_claim_id: string | null
         }
         Insert: {
           id?: string
@@ -91,6 +93,8 @@ export interface Database {
           performed_at?: string
           notes?: string | null
           request_id?: string | null
+          target_user_id?: string | null
+          record_claim_id?: string | null
         }
         Update: {
           id?: string
@@ -99,6 +103,8 @@ export interface Database {
           performed_at?: string
           notes?: string | null
           request_id?: string | null
+          target_user_id?: string | null
+          record_claim_id?: string | null
         }
       }
       action_requests: {

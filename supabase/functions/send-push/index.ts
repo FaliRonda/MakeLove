@@ -61,7 +61,23 @@ Deno.serve(async (req: Request) => {
       const requesterName = (req?.requester as { name?: string } | null)?.name ?? 'Alguien'
       const actionName = (req?.action_types as { name?: string } | null)?.name ?? 'acción'
       title = 'PingusLove'
-      body = `El usuario ${requesterName} te solicita un ${actionName}`
+      body = `${requesterName} te solicita un ${actionName}`
+    } else if (reference_id && ['performed_for_request', 'performed_for_confirmed', 'performed_for_cancelled'].includes(type)) {
+      const { data: claim } = await supabase
+        .from('action_claims')
+        .select('claimer:users!claimer_id(name), target:users!target_user_id(name), action_types(name)')
+        .eq('id', reference_id)
+        .single()
+      const claimerName = (claim?.claimer as { name?: string } | null)?.name ?? 'Alguien'
+      const targetName = (claim?.target as { name?: string } | null)?.name ?? 'alguien'
+      const actionName = (claim?.action_types as { name?: string } | null)?.name ?? 'acción'
+      if (type === 'performed_for_request') {
+        body = `${claimerName} indica que te ha hecho un ${actionName}. ¿Confirmas o cancelas?`
+      } else if (type === 'performed_for_confirmed') {
+        body = `${targetName} ha confirmado que le hiciste un ${actionName}. Has ganado 1.5× los puntos.`
+      } else {
+        body = `${targetName} ha cancelado tu registro de ${actionName} realizada hacia él/ella.`
+      }
     } else {
       const msg = messageForType(type, reference_id)
       title = msg.title

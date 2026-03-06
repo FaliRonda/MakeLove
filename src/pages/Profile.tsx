@@ -273,6 +273,8 @@ export function Profile() {
                 {visibleHistory.map((item) => {
                   if (item.kind === 'record') {
                     const at = item.record.action_types
+                    const isDoer = displayUser?.id && item.record.user_id === displayUser.id
+                    const otherName = isDoer ? item.record.target_user?.name : item.record.users?.name
                     return (
                       <li
                         key={item.id}
@@ -280,7 +282,11 @@ export function Profile() {
                       >
                         <span className="text-app-muted">{formatDateTime(item.date)}</span>
                         <span className="text-app-foreground ml-2">
-                          Realizó {at?.name ?? 'acción'}
+                          {isDoer ? (
+                            <>Realizó {at?.name ?? 'acción'} hacia {otherName ?? 'alguien'}</>
+                          ) : (
+                            <>Recibió {at?.name ?? 'acción'} de {otherName ?? 'alguien'}</>
+                          )}
                           {item.record.notes && (
                             <span className="text-app-muted"> — {item.record.notes}</span>
                           )}

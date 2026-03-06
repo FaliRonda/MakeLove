@@ -30,6 +30,9 @@ export interface ActionRecord {
   action_type_id: string
   performed_at: string
   notes: string | null
+  request_id?: string | null
+  target_user_id?: string | null
+  record_claim_id?: string | null
 }
 
 export interface ActionRequest {
@@ -57,6 +60,7 @@ export interface Notification {
 export interface ActionRecordWithDetails extends ActionRecord {
   action_types?: ActionType | null
   users?: User | null
+  target_user?: User | null
 }
 
 export type ClaimStatus = 'pending' | 'confirmed' | 'cancelled'
