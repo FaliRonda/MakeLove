@@ -90,7 +90,7 @@ export function ActionDetailView() {
           Realizaciones ({records.length})
         </h2>
         <div className="space-y-2">
-          {records.map((r: { id: string; performed_at: string; users?: { name: string }; notes?: string | null }) => (
+          {records.map((r) => (
             <div key={r.id} className="p-4 bg-app-surface rounded-xl border border-app-border">
               <div className="flex justify-between">
                 <span>{r.users?.name ?? 'Usuario'}</span>
