@@ -34,6 +34,7 @@ export function Dashboard() {
             const position = index + 1
             const isCurrentUser = user.id === profile?.id
             const isTop = position === 1
+            const profilePath = isCurrentUser ? '/profile' : `/profile/${user.id}`
             return (
               <div
                 key={user.id}
@@ -44,24 +45,27 @@ export function Dashboard() {
                 <span className="w-10 shrink-0 flex justify-end">
                   <RankBadge position={position} />
                 </span>
-                <Avatar
-                  avatarUrl={
-                    user.avatar_url
-                      ? `${user.avatar_url}?t=${user.updated_at || ''}`
-                      : null
-                  }
-                  name={user.name}
-                  size={isTop ? 'md' : 'sm'}
-                  className={isTop ? 'shadow-lg' : ''}
-                />
-                <span
-                  className={`flex-1 min-w-0 font-medium ${
+                <Link to={profilePath} className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-app-accent">
+                  <Avatar
+                    avatarUrl={
+                      user.avatar_url
+                        ? `${user.avatar_url}?t=${user.updated_at || ''}`
+                        : null
+                    }
+                    name={user.name}
+                    size={isTop ? 'md' : 'sm'}
+                    className={isTop ? 'shadow-lg' : ''}
+                  />
+                </Link>
+                <Link
+                  to={profilePath}
+                  className={`flex-1 min-w-0 font-medium hover:text-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent rounded ${
                     isCurrentUser ? 'text-app-foreground' : 'text-app-muted'
                   } ${isTop ? 'text-base' : 'text-sm'}`}
                 >
                   {user.name}
                   {isCurrentUser && <span className="ml-2 text-xs text-app-accent">(tú)</span>}
-                </span>
+                </Link>
                 <span className={`shrink-0 font-bold tabular-nums ${position === 1 ? 'text-amber-400' : position === 2 ? 'text-slate-300' : 'text-app-foreground'}`}>
                   {user.points_balance} pts
                 </span>

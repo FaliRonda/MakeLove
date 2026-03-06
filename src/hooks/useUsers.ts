@@ -2,6 +2,31 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getRestHeaders } from '@/lib/supabase'
 import type { User } from '@/types'
 
+export function useUser(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: async () => {
+      if (!userId) return null
+      const h = getRestHeaders()
+      if (h) {
+        const res = await fetch(
+          `${h.url}/rest/v1/users?id=eq.${encodeURIComponent(userId)}&select=*&limit=1`,
+          { headers: { apikey: h.key, Authorization: `Bearer ${h.token}` } }
+        )
+        if (!res.ok) return null
+        const data = await res.json()
+        const arr = Array.isArray(data) ? data : []
+        return (arr[0] ?? null) as User | null
+      }
+      if (!supabase) return null
+      const { data, error } = await supabase.from('users').select('*').eq('id', userId).maybeSingle()
+      if (error) throw error
+      return (data ?? null) as User | null
+    },
+    enabled: !!userId,
+  })
+}
+
 export function useUsers(adminOnly = false) {
   return useQuery({
     queryKey: ['users', adminOnly],

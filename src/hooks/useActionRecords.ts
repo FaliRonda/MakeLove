@@ -9,10 +9,11 @@ interface UseActionRecordsOptions {
   actionTypeId?: string
   from?: Date
   to?: Date
+  enabled?: boolean
 }
 
 export function useActionRecords(options: UseActionRecordsOptions = {}) {
-  const { userId, actionTypeId, from, to } = options
+  const { userId, actionTypeId, from, to, enabled = true } = options
 
   return useQuery({
     queryKey: ['action_records', userId, actionTypeId, from?.toISOString(), to?.toISOString()],
@@ -48,6 +49,6 @@ export function useActionRecords(options: UseActionRecordsOptions = {}) {
       if (error) throw error
       return (data ?? []) as ActionRecord[]
     },
-    enabled: !!getRestHeaders() || !!supabase,
+    enabled: enabled && (!!getRestHeaders() || !!supabase),
   })
 }

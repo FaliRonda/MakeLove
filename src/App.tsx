@@ -60,6 +60,7 @@ function AppRoutes() {
         <Route path="requests" element={<Requests />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="profile/:userId" element={<Profile />} />
       </Route>
 
       <Route
