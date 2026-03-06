@@ -1,17 +1,30 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useUnreadCount } from '@/hooks/useNotifications'
 
+const LOGO_SRC = '/pinguslove-icon.png'
+
 export function Header() {
   const { profile, isAdmin } = useAuth()
   const { data: unreadCount = 0 } = useUnreadCount(profile?.id)
+  const [logoError, setLogoError] = useState(false)
 
   return (
     <header className="sticky top-0 z-50 bg-app-surface/95 backdrop-blur border-b border-app-border">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 text-app-foreground font-bold text-xl">
-          <span className="text-2xl">♥</span>
-          MakeLove
+          {!logoError ? (
+            <img
+              src={LOGO_SRC}
+              alt=""
+              className="h-9 w-9 shrink-0 object-contain"
+              onError={() => setLogoError(true)}
+            />
+          ) : (
+            <span className="text-2xl shrink-0">♥</span>
+          )}
+          PingusLove
         </Link>
         <div className="flex items-center gap-2">
           {profile && (

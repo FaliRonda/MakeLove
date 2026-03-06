@@ -1,0 +1,17 @@
+{
+  "name": "PingusLove",
+  "short_name": "PingusLove",
+  "description": "App de pareja",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0d14",
+  "theme_color": "#0f0d14",
+  "icons": [
+    {
+      "src": "/pinguslove-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

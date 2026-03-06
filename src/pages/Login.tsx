@@ -104,8 +104,8 @@ export function Login({ loadError }: { loadError?: string | null }) {
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-app-bg">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <span className="text-5xl">♥</span>
-          <h1 className="text-2xl font-bold text-app-foreground mt-2">MakeLove</h1>
+          <img src="/pinguslove-icon.png" alt="PingusLove" className="h-24 w-24 mx-auto object-contain" />
+          <h1 className="text-2xl font-bold text-app-foreground mt-3">PingusLove</h1>
           <p className="text-app-muted text-sm mt-1">Inicia sesión en tu cuenta</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">

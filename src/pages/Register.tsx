@@ -29,7 +29,7 @@ export function Register({ loadError }: { loadError?: string | null }) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-app-bg">
         <div className="text-center">
-          <span className="text-5xl">♥</span>
+          <img src="/pinguslove-icon.png" alt="PingusLove" className="h-20 w-20 mx-auto object-contain" />
           <h2 className="text-xl font-bold text-app-foreground mt-4">¡Cuenta creada!</h2>
           <p className="text-app-muted mt-2">Recibirás 100 puntos al empezar. Redirigiendo...</p>
         </div>
@@ -41,8 +41,8 @@ export function Register({ loadError }: { loadError?: string | null }) {
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-app-bg">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <span className="text-5xl">♥</span>
-          <h1 className="text-2xl font-bold text-app-foreground mt-2">MakeLove</h1>
+          <img src="/pinguslove-icon.png" alt="PingusLove" className="h-24 w-24 mx-auto object-contain" />
+          <h1 className="text-2xl font-bold text-app-foreground mt-3">PingusLove</h1>
           <p className="text-app-muted text-sm mt-1">Crea tu cuenta (100 pts de bienvenida)</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
