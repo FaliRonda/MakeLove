@@ -23,8 +23,7 @@ type HistoryItem =
 
 function buildHistoryItems(
   records: ActionRecordWithDetails[],
-  requests: (ActionRequest & { action_types?: { name: string }; requester?: { name: string }; target?: { name: string } })[],
-  userId: string
+  requests: (ActionRequest & { action_types?: { name: string }; requester?: { name: string }; target?: { name: string } })[]
 ): HistoryItem[] {
   const items: HistoryItem[] = []
   for (const r of records) {
@@ -81,7 +80,7 @@ export function Profile() {
       )
     : []
   const historyItems = displayUser?.id
-    ? buildHistoryItems(actionRecords as ActionRecordWithDetails[], involvedRequests, displayUser.id)
+    ? buildHistoryItems(actionRecords as ActionRecordWithDetails[], involvedRequests)
     : []
   const visibleHistory = historyItems.slice(0, historyLimit)
   const hasMoreHistory = historyItems.length > historyLimit

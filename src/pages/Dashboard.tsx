@@ -26,11 +26,14 @@ export function Dashboard() {
   const ranking = [...users].sort((a, b) => b.points_balance - a.points_balance)
 
   // En empate, todos muestran la posición más alta (ej: dos 2º en vez de 2º y 3º)
-  const positions = ranking.map((user, index) =>
-    index > 0 && user.points_balance === ranking[index - 1].points_balance
-      ? positions[index - 1]
-      : index + 1
-  )
+  const positions: number[] = []
+  for (let i = 0; i < ranking.length; i++) {
+    positions.push(
+      i > 0 && ranking[i].points_balance === ranking[i - 1].points_balance
+        ? positions[i - 1]
+        : i + 1
+    )
+  }
 
   return (
     <div className="space-y-6">
