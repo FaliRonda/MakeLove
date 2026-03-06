@@ -9,7 +9,7 @@ if (vapidPublic && vapidPrivate) {
   webpush.setVapidDetails('mailto:pinguslove@localhost', vapidPublic, vapidPrivate)
 }
 
-function messageForType(type: string): { title: string; body: string } {
+function messageForType(type: string, _referenceId: string | null): { title: string; body: string } {
   switch (type) {
     case 'action_request':
       return { title: 'PingusLove', body: 'Nueva solicitud de acción' }
@@ -44,13 +44,32 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    const { user_id, type } = payload.record
-    const { title, body } = messageForType(type)
-
+    const { user_id, type, reference_id } = payload.record
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+
+    let title = 'PingusLove'
+    let body = 'Tienes una nueva notificación'
+    if (type === 'action_request' && reference_id) {
+      const { data: req } = await supabase
+        .from('action_requests')
+        .select('requester:users!requester_id(name), action_types(name)')
+        .eq('id', reference_id)
+        .single()
+      const requesterName = (req?.requester as { name?: string } | null)?.name ?? 'Alguien'
+      const actionName = (req?.action_types as { name?: string } | null)?.name ?? 'acción'
+      title = 'PingusLove'
+      body = `El usuario ${requesterName} te solicita un ${actionName}`
+    } else {
+      const msg = messageForType(type, reference_id)
+      title = msg.title
+      body = msg.body
+    }
+
+    const requestRelated = ['action_request', 'request_rejected', 'request_expired', 'performed_for_request'].includes(type)
+    const openUrl = requestRelated ? '/requests' : '/notifications'
 
     const { data: subs, error } = await supabase
       .from('push_subscriptions')
@@ -63,7 +82,7 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    const payloadStr = JSON.stringify({ title, body, url: '/notifications', tag: `n-${payload.record.id}` })
+    const payloadStr = JSON.stringify({ title, body, url: openUrl, tag: `n-${payload.record.id}` })
     let sent = 0
     const gone: string[] = []
 
