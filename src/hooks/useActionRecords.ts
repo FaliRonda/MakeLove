@@ -25,7 +25,7 @@ export function useActionRecords(options: UseActionRecordsOptions = {}) {
           order: 'performed_at.desc',
           limit: '500',
         })
-        if (userId) params.set('or', `user_id.eq.${userId},target_user_id.eq.${userId}`)
+        if (userId) params.set('or', `(user_id.eq.${userId},target_user_id.eq.${userId})`)
         if (actionTypeId) params.set('action_type_id', `eq.${actionTypeId}`)
         if (from) params.set('performed_at', `gte.${from.toISOString()}`)
         if (to) params.append('performed_at', `lte.${to.toISOString()}`)
