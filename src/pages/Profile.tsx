@@ -2,6 +2,7 @@ import { useRef, useState, useCallback } from 'react'
 import Cropper, { type Area } from 'react-easy-crop'
 import { useAuth } from '@/hooks/useAuth'
 import { useUpdateUser } from '@/hooks/useUsers'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/Avatar'
@@ -11,6 +12,7 @@ import { supabase } from '@/lib/supabase'
 export function Profile() {
   const { profile, signOut, refetchProfile, user } = useAuth()
   const updateUser = useUpdateUser()
+  const { status: pushStatus, isRegistering, registerPush } = usePushNotifications(profile?.id)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [editorImage, setEditorImage] = useState<string | null>(null)
@@ -109,14 +111,36 @@ export function Profile() {
               <dt className="text-sm text-app-muted">Saldo</dt>
               <dd className="font-bold text-app-muted text-xl">{profile?.points_balance} puntos</dd>
             </div>
-            {profile?.created_at && (
-              <div>
-                <dt className="text-sm text-app-muted">Miembro desde</dt>
-                <dd className="font-medium text-app-foreground-dark">{formatDate(profile.created_at)}</dd>
-              </div>
-            )}
+{profile?.created_at && (
+            <div>
+              <dt className="text-sm text-app-muted">Miembro desde</dt>
+              <dd className="font-medium text-app-foreground-dark">{formatDate(profile.created_at)}</dd>
+            </div>
+          )}
           </dl>
         </div>
+
+        <div className="mt-6 pt-6 border-t border-app-border">
+          <h3 className="text-sm font-medium text-app-foreground mb-2">Notificaciones push</h3>
+          <p className="text-sm text-app-muted mb-2">
+            {pushStatus === 'subscribed' && 'Recibirás notificaciones cuando alguien te envíe una solicitud o tengas novedades.'}
+            {pushStatus === 'idle' && 'Activa las notificaciones para recibir avisos en el móvil o el navegador.'}
+            {pushStatus === 'permission-denied' && 'Has bloqueado las notificaciones. Actívalas en la configuración del navegador o del móvil para recibir avisos.'}
+            {pushStatus === 'error' && 'No se pudo activar. Comprueba que el navegador permita notificaciones e inténtalo de nuevo.'}
+            {pushStatus === 'unsupported' && 'Tu navegador o esta app no soportan notificaciones push.'}
+          </p>
+          {(pushStatus === 'idle' || pushStatus === 'permission-denied' || pushStatus === 'error') && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => registerPush()}
+              disabled={isRegistering || pushStatus === 'unsupported'}
+            >
+              {isRegistering ? 'Activando…' : 'Activar notificaciones'}
+            </Button>
+          )}
+        </div>
+
         <div className="mt-6 pt-6 border-t border-app-border flex flex-wrap gap-2">
           {!profile && user && (
             <Button variant="secondary" size="sm" onClick={() => refetchProfile()}>
