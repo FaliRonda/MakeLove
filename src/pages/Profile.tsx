@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useCallback } from 'react'
+import Cropper, { type Area } from 'react-easy-crop'
 import { useAuth } from '@/hooks/useAuth'
 import { useUpdateUser } from '@/hooks/useUsers'
 import { formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/Avatar'
+import { getCroppedImg } from '@/lib/cropImage'
 import { supabase } from '@/lib/supabase'
 
 export function Profile() {
@@ -11,25 +13,49 @@ export function Profile() {
   const updateUser = useUpdateUser()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [editorImage, setEditorImage] = useState<string | null>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onCropComplete = useCallback((_: Area, pixels: Area) => {
+    setCroppedAreaPixels(pixels)
+  }, [])
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !profile?.id || !supabase) return
+    if (!file) return
     setUploadError(null)
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-    const path = `${profile.id}/avatar.${ext}`
+    setCroppedAreaPixels(null)
+    setCrop({ x: 0, y: 0 })
+    setZoom(1)
+    setEditorImage(URL.createObjectURL(file))
+    e.target.value = ''
+  }
+
+  const closeEditor = useCallback(() => {
+    if (editorImage) URL.revokeObjectURL(editorImage)
+    setEditorImage(null)
+    setCroppedAreaPixels(null)
+  }, [editorImage])
+
+  const handleApplyCrop = async () => {
+    if (!editorImage || !croppedAreaPixels || !profile?.id || !supabase) return
+    setUploadError(null)
     try {
-      const { error: uploadError } = await supabase.storage
+      const blob = await getCroppedImg(editorImage, croppedAreaPixels, true)
+      const path = `${profile.id}/avatar.jpg`
+      const { error: uploadErr } = await supabase.storage
         .from('avatars')
-        .upload(path, file, { upsert: true })
-      if (uploadError) throw uploadError
+        .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
+      if (uploadErr) throw uploadErr
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
       await updateUser.mutateAsync({ id: profile.id, avatar_url: urlData.publicUrl })
       await refetchProfile()
+      closeEditor()
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : 'Error al subir la imagen')
     }
-    e.target.value = ''
   }
 
   return (
@@ -48,7 +74,7 @@ export function Profile() {
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
               className="hidden"
-              onChange={handleAvatarChange}
+              onChange={handleFileSelect}
             />
             <Button
               variant="outline"
@@ -94,6 +120,51 @@ export function Profile() {
           </Button>
         </div>
       </div>
+
+      {editorImage && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-app-bg">
+          <div className="flex-1 min-h-0 relative">
+            <Cropper
+              image={editorImage}
+              crop={crop}
+              zoom={zoom}
+              cropShape="round"
+              showGrid={false}
+              aspect={1}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+              style={{ containerStyle: { backgroundColor: 'var(--app-bg)' } }}
+            />
+          </div>
+          <div className="p-4 pb-safe border-t border-app-border bg-app-surface flex flex-col gap-3">
+            <label className="text-sm text-app-muted font-medium">
+              Zoom
+            </label>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.1}
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="w-full h-2 rounded-lg appearance-none bg-app-bg accent-app-accent"
+            />
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={closeEditor}>
+                Cancelar
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleApplyCrop}
+                disabled={!croppedAreaPixels || updateUser.isPending}
+              >
+                {updateUser.isPending ? 'Subiendo…' : 'Aplicar'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
