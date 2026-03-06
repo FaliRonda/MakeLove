@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useUnreadCount } from '@/hooks/useNotifications'
-import { Button } from '@/components/ui/Button'
 
 export function Header() {
-  const { profile, signOut, isAdmin } = useAuth()
+  const { profile, isAdmin } = useAuth()
   const { data: unreadCount = 0 } = useUnreadCount(profile?.id)
 
   return (
@@ -39,9 +38,13 @@ export function Header() {
                   Admin
                 </Link>
               )}
-              <Button variant="ghost" size="sm" onClick={() => signOut()}>
-                Salir
-              </Button>
+              <Link
+                to="/profile"
+                className="text-app-foreground font-medium hover:text-app-accent text-sm truncate max-w-[120px] sm:max-w-[180px]"
+                title="Ir a mi perfil"
+              >
+                {profile.name}
+              </Link>
             </>
           )}
         </div>

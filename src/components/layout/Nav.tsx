@@ -6,7 +6,6 @@ const navItems = [
   { to: '/actions', label: 'Acciones', icon: '✓' },
   { to: '/calendar', label: 'Calendario', icon: '📅' },
   { to: '/requests', label: 'Solicitudes', icon: '📨' },
-  { to: '/profile', label: 'Perfil', icon: '👤' },
 ]
 
 export function Nav() {

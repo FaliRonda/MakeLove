@@ -1,22 +1,57 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { useUsers } from '@/hooks/useUsers'
 import { usePendingRequestsForUser } from '@/hooks/useRequests'
 import { useBalanceHistory } from '@/hooks/useBalanceHistory'
 import { Button } from '@/components/ui/Button'
+import { Avatar } from '@/components/Avatar'
 import { formatDateTime } from '@/lib/utils'
+
+function RankBadge({ position }: { position: number }) {
+  if (position === 1) {
+    return <span className="text-lg font-bold text-amber-400" title="1º">1º</span>
+  }
+  if (position === 2) {
+    return <span className="text-lg font-bold text-slate-300" title="2º">2º</span>
+  }
+  return <span className="text-app-muted font-medium tabular-nums">{position}º</span>
+}
 
 export function Dashboard() {
   const { profile } = useAuth()
+  const { data: users = [] } = useUsers()
   const { data: pendingRequests = [] } = usePendingRequestsForUser(profile?.id)
   const { data: balanceHistory = [] } = useBalanceHistory(profile?.id)
+
+  const ranking = [...users].sort((a, b) => b.points_balance - a.points_balance)
 
   return (
     <div className="space-y-6">
       <div className="bg-app-surface rounded-2xl p-6 shadow-sm border border-app-border">
-        <h2 className="text-lg font-semibold text-app-foreground">¡Hola, {profile?.name ?? 'Usuario'}!</h2>
-        <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-app-muted">{profile?.points_balance ?? 0}</span>
-          <span className="text-app-muted">puntos</span>
+        <h2 className="text-lg font-semibold text-app-foreground mb-4">Ranking</h2>
+        <div className="space-y-2">
+          {ranking.map((user, index) => {
+            const position = index + 1
+            const isCurrentUser = user.id === profile?.id
+            return (
+              <div
+                key={user.id}
+                className={`flex items-center gap-4 py-2 px-3 rounded-lg ${isCurrentUser ? 'bg-app-accent/15 border border-app-accent/40' : ''}`}
+              >
+                <span className="w-10 shrink-0 flex justify-end">
+                  <RankBadge position={position} />
+                </span>
+                <Avatar avatarUrl={user.avatar_url ?? null} name={user.name} size="sm" />
+                <span className={`flex-1 min-w-0 font-medium ${isCurrentUser ? 'text-app-foreground' : 'text-app-muted'}`}>
+                  {user.name}
+                  {isCurrentUser && <span className="ml-2 text-xs text-app-accent">(tú)</span>}
+                </span>
+                <span className={`shrink-0 font-bold tabular-nums ${position === 1 ? 'text-amber-400' : position === 2 ? 'text-slate-300' : 'text-app-foreground'}`}>
+                  {user.points_balance} pts
+                </span>
+              </div>
+            )
+          })}
         </div>
       </div>
 

@@ -4,8 +4,6 @@ import type { ActionRequest } from '@/types'
 
 const SELECT_REQUESTS =
   '*,action_types(id,name,points_value),requester:users!requester_id(id,name,email),target:users!target_user_id(id,name,email)'
-const SELECT_PENDING =
-  '*,action_types(id,name,points_value),requester:users!requester_id(id,name,email)'
 
 async function expirePendingRequests(h: { url: string; key: string; token: string }): Promise<void> {
   const res = await fetch(`${h.url}/rest/v1/rpc/expire_pending_requests`, {
@@ -52,8 +50,8 @@ export function usePendingRequestsForUser(userId: string | undefined) {
         await expirePendingRequests(h)
         const now = new Date().toISOString()
         const q = new URLSearchParams({
-          select: SELECT_PENDING,
-          target_user_id: `eq.${userId}`,
+          select: SELECT_REQUESTS,
+          or: `(target_user_id.eq.${userId},requester_id.eq.${userId})`,
           status: 'eq.pending',
           expires_at: `gt.${now}`,
           order: 'created_at.desc',
@@ -63,19 +61,19 @@ export function usePendingRequestsForUser(userId: string | undefined) {
         })
         if (!res.ok) return []
         const data = await res.json()
-        return Array.isArray(data) ? data : []
+        return (Array.isArray(data) ? data : []) as ActionRequest[]
       }
       if (!supabase || !userId) return []
       await supabase.rpc('expire_pending_requests')
       const { data, error } = await supabase
         .from('action_requests')
-        .select(`*,action_types(id,name,points_value),requester:users!requester_id(id,name,email)`)
-        .eq('target_user_id', userId)
+        .select(`*,action_types(id,name,points_value),requester:users!requester_id(id,name,email),target:users!target_user_id(id,name,email)`)
+        .or(`target_user_id.eq.${userId},requester_id.eq.${userId}`)
         .eq('status', 'pending')
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as ActionRequest[]
     },
     enabled: !!userId,
   })

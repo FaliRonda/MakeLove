@@ -33,6 +33,7 @@ export function useUpdateUser() {
       email,
       points_balance,
       is_admin,
+      avatar_url,
     }: Partial<User> & { id: string }) => {
       const h = getRestHeaders()
       const body: Record<string, unknown> = { updated_at: new Date().toISOString() }
@@ -40,6 +41,7 @@ export function useUpdateUser() {
       if (email !== undefined) body.email = email
       if (points_balance !== undefined) body.points_balance = points_balance
       if (is_admin !== undefined) body.is_admin = is_admin
+      if (avatar_url !== undefined) body.avatar_url = avatar_url
       if (h) {
         const res = await fetch(`${h.url}/rest/v1/users?id=eq.${encodeURIComponent(id)}`, {
           method: 'PATCH',
@@ -69,6 +71,7 @@ export function useUpdateUser() {
           ...(email !== undefined && { email }),
           ...(points_balance !== undefined && { points_balance }),
           ...(is_admin !== undefined && { is_admin }),
+          ...(avatar_url !== undefined && { avatar_url }),
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)

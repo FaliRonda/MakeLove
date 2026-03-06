@@ -8,7 +8,7 @@ import { formatDateTime } from '@/lib/utils'
 
 export function Requests() {
   const { profile } = useAuth()
-  const [tab, setTab] = useState<'pending' | 'all'>('pending')
+  const [tab, setTab] = useState<'pending' | 'resolved'>('pending')
   const [showCreate, setShowCreate] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
   const [targetUserId, setTargetUserId] = useState('')
@@ -24,7 +24,10 @@ export function Requests() {
   const cancelRequest = useCancelRequest()
   const createRequest = useCreateRequest()
 
-  const requestsToShow = tab === 'pending' ? pendingRequests : allRequests.filter((r: { target_user_id: string; requester_id: string }) => r.target_user_id === profile?.id || r.requester_id === profile?.id)
+  const resolvedRequests = allRequests
+    .filter((r) => (r.target_user_id === profile?.id || r.requester_id === profile?.id) && r.status !== 'pending')
+    .sort((a, b) => new Date(b.responded_at ?? b.created_at).getTime() - new Date(a.responded_at ?? a.created_at).getTime())
+  const requestsToShow = tab === 'pending' ? pendingRequests : resolvedRequests
 
   const handleAccept = async (id: string) => {
     try {
@@ -123,10 +126,10 @@ export function Requests() {
           Pendientes ({pendingRequests.length})
         </button>
         <button
-          onClick={() => setTab('all')}
-          className={`px-4 py-2 rounded-lg font-medium ${tab === 'all' ? 'bg-app-accent text-white' : 'bg-app-bg text-app-muted'}`}
+          onClick={() => setTab('resolved')}
+          className={`px-4 py-2 rounded-lg font-medium ${tab === 'resolved' ? 'bg-app-accent text-white' : 'bg-app-bg text-app-muted'}`}
         >
-          Todas
+          Resueltas ({resolvedRequests.length})
         </button>
       </div>
 

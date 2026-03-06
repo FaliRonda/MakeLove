@@ -8,6 +8,7 @@ export interface User {
   email: string
   points_balance: number
   is_admin: boolean
+  avatar_url: string | null
   created_at: string
   updated_at: string
 }
