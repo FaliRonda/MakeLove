@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useUnreadCount } from '@/hooks/useNotifications'
 
-const LOGO_SRC = '/pinguslove-icon.png'
+const LOGO_SRC = '/pinguslove-header.png'
 
 export function Header() {
   const { profile, isAdmin } = useAuth()
