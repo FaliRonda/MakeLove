@@ -29,20 +29,32 @@ export function Dashboard() {
     <div className="space-y-6">
       <div className="bg-app-surface rounded-2xl p-6 shadow-sm border border-app-border">
         <h2 className="text-lg font-semibold text-app-foreground mb-4">Ranking</h2>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {ranking.map((user, index) => {
             const position = index + 1
             const isCurrentUser = user.id === profile?.id
+            const isTop = position === 1
             return (
               <div
                 key={user.id}
-                className={`flex items-center gap-4 py-2 px-3 rounded-lg ${isCurrentUser ? 'bg-app-accent/15 border border-app-accent/40' : ''}`}
+                className={`flex items-center gap-4 py-3 px-4 rounded-2xl ${
+                  isCurrentUser ? 'bg-app-accent/15 border border-app-accent/40' : 'bg-app-bg'
+                } ${isTop ? 'scale-[1.02]' : ''}`}
               >
                 <span className="w-10 shrink-0 flex justify-end">
                   <RankBadge position={position} />
                 </span>
-                <Avatar avatarUrl={user.avatar_url ?? null} name={user.name} size="sm" />
-                <span className={`flex-1 min-w-0 font-medium ${isCurrentUser ? 'text-app-foreground' : 'text-app-muted'}`}>
+                <Avatar
+                  avatarUrl={user.avatar_url ?? null}
+                  name={user.name}
+                  size={isTop ? 'md' : 'sm'}
+                  className={isTop ? 'shadow-lg' : ''}
+                />
+                <span
+                  className={`flex-1 min-w-0 font-medium ${
+                    isCurrentUser ? 'text-app-foreground' : 'text-app-muted'
+                  } ${isTop ? 'text-base' : 'text-sm'}`}
+                >
                   {user.name}
                   {isCurrentUser && <span className="ml-2 text-xs text-app-accent">(tú)</span>}
                 </span>
