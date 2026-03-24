@@ -1,9 +1,5 @@
 import { useState } from 'react'
-import {
-  getLevelProgress,
-  getMedalLevelsUnlocked,
-  LEVEL_POINTS_STEP,
-} from '@/lib/levels'
+import { getLevelProgress, getMedalLevelsUnlocked } from '@/lib/levels'
 import { formatDateTime } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { useLevelMedals, useRedeemLevelMedal } from '@/hooks/useLevelMedals'
@@ -48,8 +44,7 @@ export function LevelAndMedalsSection({
   const [dialog, setDialog] = useState<MedalDialog>(null)
   const [redeemNote, setRedeemNote] = useState('')
 
-  const { level, progressFraction, pointsToNextLevel } =
-    getLevelProgress(lifetimePoints)
+  const { level, progressFraction, nextLevelAt } = getLevelProgress(lifetimePoints)
   const medalLevels = getMedalLevelsUnlocked(level)
   const mMap = medalMap(medalRows)
 
@@ -92,42 +87,28 @@ export function LevelAndMedalsSection({
         <h3 className="text-sm font-medium text-app-foreground mb-3">
           Nivel y progreso
         </h3>
-        <div className="relative pt-5 pb-1">
-          <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2 px-3 py-0.5 rounded-full bg-app-surface border border-app-border shadow-sm">
+        <div className="flex flex-col items-center gap-2">
+          <div className="px-3 py-0.5 rounded-full bg-app-surface border border-app-border shadow-sm">
             <span className="text-sm font-semibold text-app-foreground tabular-nums">
               Nivel {level}
             </span>
           </div>
           <div
-            className="h-3 w-full rounded-full bg-app-bg border border-app-border overflow-hidden mt-1"
+            className="h-3 w-full rounded-full bg-app-bg border border-app-border overflow-hidden"
             role="progressbar"
             aria-valuenow={pct}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={`Progreso hacia el nivel ${level + 1}`}
+            aria-label={`Progreso: ${lifetimePoints} puntos de vida; el nivel ${level + 1} empieza al llegar a ${nextLevelAt} (200, 300, 400…)`}
           >
             <div
-              className="h-full rounded-full bg-gradient-to-r from-app-accent to-rose-400 transition-all duration-300"
+              className="h-full rounded-full bg-gradient-to-r from-teal-400 via-cyan-500 to-violet-600 transition-all duration-300"
               style={{ width: `${pct}%` }}
             />
           </div>
         </div>
-        <p className="text-sm text-app-muted text-center mt-2">
-          {pointsToNextLevel === 0 ? (
-            <>Has alcanzado el umbral del siguiente nivel.</>
-          ) : (
-            <>
-              Te faltan{' '}
-              <span className="font-semibold text-app-foreground tabular-nums">
-                {pointsToNextLevel}
-              </span>{' '}
-              punto{pointsToNextLevel !== 1 ? 's' : ''} para el nivel{' '}
-              {level + 1}{' '}
-              <span className="text-app-muted">
-                (cada {LEVEL_POINTS_STEP} puntos de vida subes un nivel)
-              </span>
-            </>
-          )}
+        <p className="text-center mt-2 text-sm font-semibold text-app-foreground tabular-nums">
+          {lifetimePoints}/{nextLevelAt}
         </p>
       </div>
 
@@ -139,12 +120,7 @@ export function LevelAndMedalsSection({
           Cada medalla es la recompensa por subir a ese nivel; canjéala con tu
           pareja y márcala aquí cuando la hayáis disfrutado fuera de la app.
         </p>
-        {medalLevels.length === 0 ? (
-          <p className="text-sm text-app-muted">
-            El nivel 1 no incluye medalla. Sigue ganando puntos de vida para
-            desbloquear la primera.
-          </p>
-        ) : (
+        {medalLevels.length === 0 ? null : (
           <ul className="flex flex-wrap gap-4 justify-center sm:justify-start">
             {medalLevels.map((lv) => {
               const row = mMap.get(lv)

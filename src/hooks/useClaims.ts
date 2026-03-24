@@ -125,6 +125,7 @@ export function useConfirmClaim() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
       queryClient.invalidateQueries({ queryKey: ['balance_transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['weekly_collab_goal'] })
     },
   })
 }

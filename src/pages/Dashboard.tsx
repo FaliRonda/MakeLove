@@ -1,10 +1,13 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { WeeklyGoalSection } from '@/components/dashboard/WeeklyGoalSection'
 import { useAuth } from '@/hooks/useAuth'
 import { useUsers } from '@/hooks/useUsers'
 import { usePendingRequestsForUser } from '@/hooks/useRequests'
 import { useBalanceHistory } from '@/hooks/useBalanceHistory'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/Avatar'
+import { experienceAfterTransactionsDesc } from '@/lib/experienceHistory'
 import { formatDateTime } from '@/lib/utils'
 import { getLevelFromLifetime } from '@/lib/levels'
 
@@ -19,10 +22,19 @@ function RankBadge({ position }: { position: number }) {
 }
 
 export function Dashboard() {
-  const { profile } = useAuth()
+  const { profile, refetchProfile } = useAuth()
   const { data: users = [] } = useUsers()
   const { data: pendingRequests = [] } = usePendingRequestsForUser(profile?.id)
   const { data: balanceHistory = [] } = useBalanceHistory(profile?.id)
+
+  const experienceAfterRows = useMemo(
+    () =>
+      experienceAfterTransactionsDesc(
+        balanceHistory,
+        profile?.lifetime_points_earned ?? 100
+      ),
+    [balanceHistory, profile?.lifetime_points_earned]
+  )
 
   const ranking = [...users].sort((a, b) => b.points_balance - a.points_balance)
 
@@ -96,6 +108,8 @@ export function Dashboard() {
         </div>
       </div>
 
+      <WeeklyGoalSection enabled={!!profile?.id} refetchProfile={refetchProfile} />
+
       {pendingRequests.length > 0 && (
         <div className="bg-app-bg border border-app-border-hover rounded-2xl p-4">
           <h3 className="font-semibold text-app-foreground mb-2">
@@ -114,7 +128,7 @@ export function Dashboard() {
           <p className="text-app-muted text-center py-6 bg-app-surface rounded-xl border border-app-border">Aún no hay movimientos</p>
         ) : (
           <div className="space-y-2">
-            {balanceHistory.map((t) => (
+            {balanceHistory.map((t, i) => (
               <div
                 key={t.id}
                 className="flex flex-wrap items-center gap-x-4 gap-y-1 p-4 bg-app-surface rounded-xl border border-app-border text-sm"
@@ -124,7 +138,11 @@ export function Dashboard() {
                 <span className={t.delta >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
                   {t.delta >= 0 ? '+' : ''}{t.delta} pts
                 </span>
-                <span className="text-app-muted">Saldo: {t.balance_after} pts</span>
+                <span className="text-app-muted tabular-nums">
+                  Saldo: {t.balance_after} pts
+                  <span className="text-app-muted/80 mx-1.5">·</span>
+                  Experiencia: {experienceAfterRows[i]}
+                </span>
               </div>
             ))}
           </div>

@@ -24,6 +24,15 @@ export interface UserLevelMedal {
   created_at: string
 }
 
+export interface WeeklyCollabGoalState {
+  week_monday: string
+  action_count: number
+  goal: number
+  reward_points: number
+  claimed: boolean
+  can_claim: boolean
+}
+
 export interface ActionType {
   id: string
   name: string

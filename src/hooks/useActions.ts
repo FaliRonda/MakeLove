@@ -87,6 +87,7 @@ export function useMarkActionDone() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['action_records'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ['weekly_collab_goal'] })
     },
   })
 }

@@ -7,6 +7,7 @@ import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { useBalanceHistory } from '@/hooks/useBalanceHistory'
 import { useActionRecords } from '@/hooks/useActionRecords'
 import { useActionRequests } from '@/hooks/useRequests'
+import { experienceByTransactionId } from '@/lib/experienceHistory'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/Avatar'
@@ -30,6 +31,8 @@ function buildHistoryItems(
 ): HistoryItem[] {
   const items: HistoryItem[] = []
   for (const r of records) {
+    // Evita duplicar con “Solicitud … Aceptada” cuando la acción viene de una solicitud aceptada.
+    if (r.request_id) continue
     items.push({ kind: 'record', date: r.performed_at, id: `r-${r.id}`, record: r })
   }
   for (const req of requests) {
@@ -85,6 +88,14 @@ export function Profile() {
     }
     return m
   }, [balanceTransactions])
+
+  const experienceByTxId = useMemo(() => {
+    if (!displayUser?.id) return new Map<string, number>()
+    return experienceByTransactionId(
+      balanceTransactions,
+      displayUser.lifetime_points_earned ?? 100
+    )
+  }, [balanceTransactions, displayUser?.id, displayUser?.lifetime_points_earned])
 
   useEffect(() => {
     if (isOwnProfile && displayUser) setStatusInput(displayUser.estado ?? '')
@@ -320,7 +331,11 @@ export function Profile() {
                                 {' '}
                                 {bt.delta >= 0 ? '+' : ''}{bt.delta} pts
                               </span>
-                              <span className="text-app-muted ml-2">Saldo: {bt.balance_after} pts</span>
+                              <span className="text-app-muted ml-2 tabular-nums">
+                                Saldo: {bt.balance_after} pts
+                                <span className="text-app-muted/80 mx-1">·</span>
+                                Experiencia: {experienceByTxId.get(bt.id) ?? '—'}
+                              </span>
                             </>
                           )}
                           {item.record.notes && (
@@ -357,7 +372,11 @@ export function Profile() {
                               {' '}
                               {bt.delta >= 0 ? '+' : ''}{bt.delta} pts
                             </span>
-                            <span className="text-app-muted ml-2">Saldo: {bt.balance_after} pts</span>
+                            <span className="text-app-muted ml-2 tabular-nums">
+                              Saldo: {bt.balance_after} pts
+                              <span className="text-app-muted/80 mx-1">·</span>
+                              Experiencia: {experienceByTxId.get(bt.id) ?? '—'}
+                            </span>
                           </>
                         )}
                         {req.requester?.name && req.target?.name && (
