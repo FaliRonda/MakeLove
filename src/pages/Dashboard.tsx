@@ -6,6 +6,7 @@ import { useBalanceHistory } from '@/hooks/useBalanceHistory'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/Avatar'
 import { formatDateTime } from '@/lib/utils'
+import { getLevelFromLifetime } from '@/lib/levels'
 
 function RankBadge({ position }: { position: number }) {
   if (position === 1) {
@@ -69,12 +70,22 @@ export function Dashboard() {
                 </Link>
                 <Link
                   to={profilePath}
-                  className={`flex-1 min-w-0 font-medium hover:text-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent rounded ${
+                  className={`flex-1 min-w-0 flex items-center gap-2 font-medium hover:text-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent rounded ${
                     isCurrentUser ? 'text-app-foreground' : 'text-app-muted'
                   } ${isTop ? 'text-base' : 'text-sm'}`}
                 >
-                  {user.name}
-                  {isCurrentUser && <span className="ml-2 text-xs text-app-accent">(tú)</span>}
+                  <span className="truncate min-w-0">
+                    {user.name}
+                    {isCurrentUser && (
+                      <span className="ml-2 text-xs text-app-accent shrink-0">(tú)</span>
+                    )}
+                  </span>
+                  <span
+                    className="shrink-0 text-xs text-app-muted font-medium tabular-nums"
+                    title="Nivel por puntos de vida acumulados"
+                  >
+                    Nvl {getLevelFromLifetime(user.lifetime_points_earned ?? 100)}
+                  </span>
                 </Link>
                 <span className={`shrink-0 font-bold tabular-nums ${position === 1 ? 'text-amber-400' : position === 2 ? 'text-slate-300' : 'text-app-foreground'}`}>
                   {user.points_balance} pts

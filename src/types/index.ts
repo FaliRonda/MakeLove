@@ -7,11 +7,21 @@ export interface User {
   name: string
   email: string
   points_balance: number
+  /** Puntos ganados de por vida (incluye 100 iniciales y créditos del historial). */
+  lifetime_points_earned?: number
   is_admin: boolean
   avatar_url: string | null
   estado: string | null
   created_at: string
   updated_at: string
+}
+
+export interface UserLevelMedal {
+  user_id: string
+  level: number
+  redeemed_at: string
+  note: string | null
+  created_at: string
 }
 
 export interface ActionType {

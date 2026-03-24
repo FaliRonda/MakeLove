@@ -158,6 +158,7 @@ export function useAcceptRequest() {
       queryClient.invalidateQueries({ queryKey: ['action_requests'] })
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ['balance_transactions'] })
     },
   })
 }
@@ -192,6 +193,7 @@ export function useRejectRequest() {
       queryClient.invalidateQueries({ queryKey: ['action_requests'] })
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ['balance_transactions'] })
     },
   })
 }
@@ -225,6 +227,7 @@ export function useCancelRequest() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['action_requests'] })
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['balance_transactions'] })
     },
   })
 }
@@ -259,6 +262,7 @@ export function useRevertRequest() {
       queryClient.invalidateQueries({ queryKey: ['action_requests'] })
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ['balance_transactions'] })
     },
   })
 }

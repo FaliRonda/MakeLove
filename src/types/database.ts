@@ -17,6 +17,7 @@ export interface Database {
           name: string
           email: string
           points_balance: number
+          lifetime_points_earned: number
           is_admin: boolean
           avatar_url: string | null
           estado: string | null
@@ -28,6 +29,7 @@ export interface Database {
           name: string
           email: string
           points_balance?: number
+          lifetime_points_earned?: number
           is_admin?: boolean
           avatar_url?: string | null
           estado?: string | null
@@ -39,11 +41,35 @@ export interface Database {
           name?: string
           email?: string
           points_balance?: number
+          lifetime_points_earned?: number
           is_admin?: boolean
           avatar_url?: string | null
           estado?: string | null
           created_at?: string
           updated_at?: string
+        }
+      }
+      user_level_medals: {
+        Row: {
+          user_id: string
+          level: number
+          redeemed_at: string
+          note: string | null
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          level: number
+          redeemed_at?: string
+          note?: string | null
+          created_at?: string
+        }
+        Update: {
+          user_id?: string
+          level?: number
+          redeemed_at?: string
+          note?: string | null
+          created_at?: string
         }
       }
       action_types: {

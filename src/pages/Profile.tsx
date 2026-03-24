@@ -1,19 +1,22 @@
-import { useRef, useState, useCallback, useEffect } from 'react'
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import Cropper, { type Area } from 'react-easy-crop'
 import { useAuth } from '@/hooks/useAuth'
 import { useUser, useUpdateUser } from '@/hooks/useUsers'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
+import { useBalanceHistory } from '@/hooks/useBalanceHistory'
 import { useActionRecords } from '@/hooks/useActionRecords'
 import { useActionRequests } from '@/hooks/useRequests'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/Avatar'
+import { LevelAndMedalsSection } from '@/components/profile/LevelAndMedalsSection'
 import { getCroppedImg } from '@/lib/cropImage'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@/types'
 import type { ActionRecordWithDetails } from '@/types'
 import type { ActionRequest } from '@/types'
+import type { BalanceTransaction } from '@/types'
 
 const PAGE_SIZE = 5
 
@@ -67,6 +70,22 @@ export function Profile() {
 
   const isOwnProfile = !paramUserId || paramUserId === profile?.id
   const displayUser: User | null = isOwnProfile ? (profile ?? null) : (viewedUser ?? null)
+  const { data: balanceTransactions = [] } = useBalanceHistory(displayUser?.id)
+
+  // balance_transactions.reference_id apunta a distintas "fuentes" (request id, claim id, etc).
+  // Este mapa permite encontrar rápidamente la variación de puntos asociada a lo que mostramos en el historial.
+  const balanceByReferenceId = useMemo(() => {
+    const m = new Map<string, BalanceTransaction[]>()
+    for (const t of balanceTransactions) {
+      if (!t.reference_id) continue
+      const key = String(t.reference_id)
+      const prev = m.get(key)
+      if (prev) prev.push(t)
+      else m.set(key, [t])
+    }
+    return m
+  }, [balanceTransactions])
+
   useEffect(() => {
     if (isOwnProfile && displayUser) setStatusInput(displayUser.estado ?? '')
   }, [isOwnProfile, displayUser?.id, displayUser?.estado])
@@ -262,6 +281,12 @@ export function Profile() {
           )}
         </dl>
 
+        <LevelAndMedalsSection
+          userId={displayUser.id}
+          lifetimePoints={displayUser.lifetime_points_earned ?? 100}
+          isOwnProfile={isOwnProfile}
+        />
+
         {/* Histórico: acciones y solicitudes (encima de push) */}
         <div className="mt-6 pt-6 border-t border-app-border">
           <h3 className="text-sm font-medium text-app-foreground mb-2">Historial de acciones y solicitudes</h3>
@@ -275,6 +300,8 @@ export function Profile() {
                     const at = item.record.action_types
                     const isDoer = displayUser?.id && item.record.user_id === displayUser.id
                     const otherName = isDoer ? item.record.target_user?.name : item.record.users?.name
+                    const balanceRefId = item.record.record_claim_id ?? item.record.request_id ?? null
+                    const bt = balanceRefId ? balanceByReferenceId.get(balanceRefId)?.[0] : undefined
                     return (
                       <li
                         key={item.id}
@@ -286,6 +313,15 @@ export function Profile() {
                             <>Realizó {at?.name ?? 'acción'} hacia {otherName ?? 'alguien'}</>
                           ) : (
                             <>Recibió {at?.name ?? 'acción'} de {otherName ?? 'alguien'}</>
+                          )}
+                          {bt && (
+                            <>
+                              <span className={bt.delta >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                                {' '}
+                                {bt.delta >= 0 ? '+' : ''}{bt.delta} pts
+                              </span>
+                              <span className="text-app-muted ml-2">Saldo: {bt.balance_after} pts</span>
+                            </>
                           )}
                           {item.record.notes && (
                             <span className="text-app-muted"> — {item.record.notes}</span>
@@ -306,6 +342,7 @@ export function Profile() {
                           : req.status === 'cancelled'
                             ? 'Cancelada'
                             : req.status
+                  const bt = balanceByReferenceId.get(req.id)?.[0]
                   return (
                     <li
                       key={item.id}
@@ -314,6 +351,15 @@ export function Profile() {
                       <span className="text-app-muted">{formatDateTime(item.date)}</span>
                       <span className="text-app-foreground ml-2">
                         Solicitud {actionName} — {statusLabel}
+                        {bt && (
+                          <>
+                            <span className={bt.delta >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                              {' '}
+                              {bt.delta >= 0 ? '+' : ''}{bt.delta} pts
+                            </span>
+                            <span className="text-app-muted ml-2">Saldo: {bt.balance_after} pts</span>
+                          </>
+                        )}
                         {req.requester?.name && req.target?.name && (
                           <span className="text-app-muted">
                             {' '}
