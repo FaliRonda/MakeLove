@@ -10,6 +10,7 @@ import { useActionRequests } from '@/hooks/useRequests'
 import { experienceByTransactionId } from '@/lib/experienceHistory'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
+import { Switch } from '@/components/ui/Switch'
 import { Avatar } from '@/components/Avatar'
 import { LevelAndMedalsSection } from '@/components/profile/LevelAndMedalsSection'
 import { getCroppedImg } from '@/lib/cropImage'
@@ -59,7 +60,7 @@ export function Profile() {
   const { profile, signOut, refetchProfile, user } = useAuth()
   const { data: viewedUser } = useUser(paramUserId ?? undefined)
   const updateUser = useUpdateUser()
-  const { status: pushStatus, isRegistering, registerPush } = usePushNotifications(profile?.id)
+  const { status: pushStatus, isRegistering, registerPush, unregisterPush } = usePushNotifications(profile?.id)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [editorImage, setEditorImage] = useState<string | null>(null)
@@ -407,25 +408,40 @@ export function Profile() {
         {isOwnProfile && (
           <>
             <div className="mt-6 pt-6 border-t border-app-border">
-              <h3 className="text-sm font-medium text-app-foreground mb-2">Notificaciones push</h3>
-              <p className="text-sm text-app-muted mb-2">
+              <div className="mb-2 space-y-2">
+                <h3 className="text-sm font-medium text-app-foreground">Notificaciones push</h3>
+                <div className="flex flex-col items-start gap-1">
+                  <Switch
+                    checked={pushStatus === 'subscribed'}
+                    disabled={
+                      isRegistering ||
+                      pushStatus === 'unsupported' ||
+                      pushStatus === 'vapid-missing' ||
+                      pushStatus === 'permission-denied'
+                    }
+                    aria-label={
+                      pushStatus === 'subscribed'
+                        ? 'Notificaciones push activadas'
+                        : 'Notificaciones push desactivadas'
+                    }
+                    onCheckedChange={(on) => {
+                      if (on) void registerPush()
+                      else void unregisterPush()
+                    }}
+                  />
+                  <span className="text-xs font-medium text-app-muted tabular-nums">
+                    {pushStatus === 'subscribed' ? 'Activadas' : 'Desactivadas'}
+                  </span>
+                </div>
+              </div>
+              <p className="text-sm text-app-muted">
                 {pushStatus === 'subscribed' && 'Recibirás notificaciones cuando alguien te envíe una solicitud o tengas novedades.'}
-                {pushStatus === 'idle' && 'Activa las notificaciones para recibir avisos en el móvil o el navegador.'}
-                {pushStatus === 'permission-denied' && 'Has bloqueado las notificaciones. Actívalas en la configuración del navegador o del móvil para recibir avisos.'}
-                {pushStatus === 'error' && 'No se pudo activar. Comprueba que el navegador permita notificaciones e inténtalo de nuevo.'}
+                {pushStatus === 'idle' && 'Activa el interruptor para recibir avisos en el móvil o el navegador.'}
+                {pushStatus === 'permission-denied' && 'Has bloqueado las notificaciones. Actívalas en la configuración del navegador o del móvil para poder usar el interruptor.'}
+                {pushStatus === 'error' && 'No se pudo cambiar el estado. Comprueba que el navegador permita notificaciones e inténtalo de nuevo.'}
                 {pushStatus === 'vapid-missing' && 'Las notificaciones push no están configuradas en este despliegue. El equipo debe añadir la variable VITE_VAPID_PUBLIC_KEY en Netlify (o en el servidor donde se despliega) y volver a desplegar.'}
                 {pushStatus === 'unsupported' && 'Tu navegador o esta app no soportan notificaciones push (por ejemplo en HTTP o en modo incógnito).'}
               </p>
-              {(pushStatus === 'idle' || pushStatus === 'permission-denied' || pushStatus === 'error') && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => registerPush()}
-                  disabled={isRegistering}
-                >
-                  {isRegistering ? 'Activando…' : 'Activar notificaciones'}
-                </Button>
-              )}
             </div>
 
             <div className="mt-6 pt-6 border-t border-app-border flex flex-wrap gap-2">
