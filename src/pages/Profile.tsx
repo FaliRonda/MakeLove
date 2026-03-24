@@ -25,6 +25,7 @@ const PAGE_SIZE = 5
 type HistoryItem =
   | { kind: 'record'; date: string; id: string; record: ActionRecordWithDetails }
   | { kind: 'request'; date: string; id: string; request: ActionRequest & { action_types?: { name: string }; requester?: { name: string }; target?: { name: string } } }
+  | { kind: 'balance'; date: string; id: string; tx: BalanceTransaction }
 
 function buildHistoryItems(
   records: ActionRecordWithDetails[],
@@ -43,6 +44,24 @@ function buildHistoryItems(
   }
   items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   return items
+}
+
+/** Movimientos de saldo sin acción/solicitud vinculada (p. ej. recompensa semanal). */
+function orphanBalanceHistoryItems(txs: BalanceTransaction[]): HistoryItem[] {
+  return txs
+    .filter((t) => t.reference_id == null)
+    .map((t) => ({
+      kind: 'balance' as const,
+      date: t.created_at,
+      id: `b-${t.id}`,
+      tx: t,
+    }))
+}
+
+function mergeAndSortHistory(base: HistoryItem[], extra: HistoryItem[]): HistoryItem[] {
+  return [...base, ...extra].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
 }
 
 function getInitials(name: string): string {
@@ -114,9 +133,15 @@ export function Profile() {
           r.status !== 'pending'
       )
     : []
-  const historyItems = displayUser?.id
-    ? buildHistoryItems(actionRecords as ActionRecordWithDetails[], involvedRequests)
-    : []
+  const historyItems = useMemo(() => {
+    if (!displayUser?.id) return []
+    const base = buildHistoryItems(
+      actionRecords as ActionRecordWithDetails[],
+      involvedRequests
+    )
+    const orphans = orphanBalanceHistoryItems(balanceTransactions)
+    return mergeAndSortHistory(base, orphans)
+  }, [displayUser?.id, actionRecords, involvedRequests, balanceTransactions])
   const visibleHistory = historyItems.slice(0, historyLimit)
   const hasMoreHistory = historyItems.length > historyLimit
 
@@ -301,13 +326,47 @@ export function Profile() {
 
         {/* Histórico: acciones y solicitudes (encima de push) */}
         <div className="mt-6 pt-6 border-t border-app-border">
-          <h3 className="text-sm font-medium text-app-foreground mb-2">Historial de acciones y solicitudes</h3>
+          <h3 className="text-sm font-medium text-app-foreground mb-2">
+            Historial de acciones, solicitudes y recompensas
+          </h3>
           {visibleHistory.length === 0 ? (
-            <p className="text-sm text-app-muted">Aún no hay acciones ni solicitudes</p>
+            <p className="text-sm text-app-muted">Aún no hay actividad reciente</p>
           ) : (
             <>
               <ul className="space-y-2">
                 {visibleHistory.map((item) => {
+                  if (item.kind === 'balance') {
+                    const tx = item.tx
+                    const title =
+                      tx.event_type === 'weekly_collab_reward'
+                        ? 'Recompensa objetivo semanal colaborativo'
+                        : tx.description?.trim() || tx.event_type
+                    return (
+                      <li
+                        key={item.id}
+                        className="text-sm p-3 rounded-lg bg-app-bg border border-app-border"
+                      >
+                        <span className="text-app-muted">{formatDateTime(item.date)}</span>
+                        <span className="text-app-foreground ml-2">
+                          {title}
+                          <span
+                            className={
+                              tx.delta >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'
+                            }
+                          >
+                            {' '}
+                            {tx.delta >= 0 ? '+' : ''}
+                            {tx.delta} pts
+                          </span>
+                          <span className="text-app-muted ml-2 tabular-nums">
+                            Saldo: {tx.balance_after} pts
+                            <span className="text-app-muted/80 mx-1">·</span>
+                            Experiencia: {experienceByTxId.get(tx.id) ?? '—'}
+                          </span>
+                        </span>
+                      </li>
+                    )
+                  }
                   if (item.kind === 'record') {
                     const at = item.record.action_types
                     const isDoer = displayUser?.id && item.record.user_id === displayUser.id
