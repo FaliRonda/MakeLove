@@ -31,10 +31,10 @@ export function HistoriaPreviewSection({ userId }: { userId: string | undefined 
     historiaState.chapters[0] ??
     null
 
-  const allMissions = historiaState.chapters.flatMap((ch) => ch.missions)
+  const allMissions = (historiaState?.chapters ?? []).flatMap((ch) => ch.missions)
   const totalMissions = allMissions.length
   const completedMissions = allMissions.filter((m) => m.claimed).length
-  const claimable = allMissions.filter((m) => m.progress.is_complete && !m.claimed)
+  const claimable = allMissions.filter((m) => m.progress?.is_complete && !m.claimed)
   const pendingPiedritas = claimable.reduce((s, m) => s + m.reward_piedritas, 0)
   const progressPct = totalMissions > 0 ? (completedMissions / totalMissions) * 100 : 0
 

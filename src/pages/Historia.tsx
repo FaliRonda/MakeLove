@@ -92,20 +92,23 @@ export function Historia() {
                 <div className="mt-3 space-y-2">
                   {chapter.missions.map((mission) => {
                     const canClaim = mission.progress?.is_complete && !mission.claimed && !chapterExpired
-                    const progressText = `${mission.progress.progress_value}/${mission.progress.progress_target}`
+                    const progressText = `${mission.progress?.progress_value ?? 0}/${mission.progress?.progress_target ?? '?'}`
                     return (
                       <div
                         key={mission.id}
                         className="flex items-center justify-between gap-3 p-3 rounded-xl bg-app-surface border border-app-border"
                       >
                         <div className="min-w-0">
-                          <p className="font-medium text-app-foreground truncate">{mission.title}</p>
-                          <p className="text-xs text-app-muted mt-1">
+                          <p className="font-medium text-app-foreground">{mission.title}</p>
+                          {mission.description && (
+                            <p className="text-xs text-app-muted mt-1 leading-relaxed">{mission.description}</p>
+                          )}
+                          <p className="text-xs text-app-muted mt-1.5">
                             Progreso:{' '}
                             <span className="tabular-nums text-app-foreground font-semibold">{progressText}</span> · Premio:{' '}
-                            <span className="tabular-nums text-app-accent font-semibold">{mission.reward_piedritas} Piedritas</span>
+                            <span className="tabular-nums text-app-accent font-semibold">{mission.reward_piedritas} 💎</span>
                           </p>
-                          {mission.claimed && <p className="text-xs text-green-300 mt-1">Reclamado</p>}
+                          {mission.claimed && <p className="text-xs text-green-400 mt-1">✓ Reclamado</p>}
                         </div>
                         <div className="shrink-0">
                           <Button

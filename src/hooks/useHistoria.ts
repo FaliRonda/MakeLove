@@ -11,10 +11,11 @@ type HistoriaMission = {
   id: string
   order_number: number
   title: string
+  description: string
   target_type: 'individual' | 'couple'
   reward_piedritas: number
   claimed: boolean
-  progress: HistoriaProgress
+  progress: HistoriaProgress | null
 }
 
 type HistoriaChapter = {
