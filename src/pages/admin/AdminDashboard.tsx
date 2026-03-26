@@ -19,6 +19,20 @@ export function AdminDashboard() {
           <h2 className="font-semibold text-app-foreground">Gestionar usuarios</h2>
           <p className="text-sm text-app-muted mt-1">Editar usuarios, puntos y permisos admin</p>
         </Link>
+        <Link
+          to="/admin/couples"
+          className="block p-6 bg-app-surface rounded-2xl border border-app-border hover:border-app-border-hover transition-colors"
+        >
+          <h2 className="font-semibold text-app-foreground">Gestionar parejas</h2>
+          <p className="text-sm text-app-muted mt-1">Asociar dos usuarios (reemplaza pareja anterior)</p>
+        </Link>
+        <Link
+          to="/admin/historia"
+          className="block p-6 bg-app-surface rounded-2xl border border-app-border hover:border-app-border-hover transition-colors"
+        >
+          <h2 className="font-semibold text-app-foreground">Gestionar Historias</h2>
+          <p className="text-sm text-app-muted mt-1">Crear Historias, Capítulos y Misiones</p>
+        </Link>
       </div>
       <Link to="/" className="block text-app-muted hover:underline">← Volver al inicio</Link>
     </div>

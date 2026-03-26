@@ -7,11 +7,14 @@ export interface User {
   name: string
   email: string
   points_balance: number
+  piedritas_balance?: number
   /** Puntos ganados de por vida (incluye 100 iniciales y créditos del historial). */
   lifetime_points_earned?: number
   is_admin: boolean
   avatar_url: string | null
   estado: string | null
+  equipped_name_color?: string | null
+  equipped_badge?: string | null
   created_at: string
   updated_at: string
 }
@@ -105,4 +108,38 @@ export interface BalanceTransaction {
   reference_id: string | null
   description: string | null
   created_at: string
+}
+
+export type ShopItemType = 'name_color' | 'badge' | 'medal'
+
+export interface ShopItem {
+  id: string
+  name: string
+  description: string
+  item_type: ShopItemType
+  color_value: string | null
+  badge_symbol: string | null
+  cost_piedritas: number
+  is_temporary: boolean
+  available_until: string | null
+  is_couple_item: boolean
+  is_active: boolean
+  sort_order: number
+  created_at: string
+}
+
+export interface UserInventoryItem {
+  id: string
+  user_id: string
+  item_id: string
+  acquired_at: string
+  expires_at: string | null
+  is_equipped: boolean
+  name: string
+  description: string
+  item_type: ShopItemType
+  color_value: string | null
+  badge_symbol: string | null
+  is_temporary: boolean
+  is_couple_item: boolean
 }

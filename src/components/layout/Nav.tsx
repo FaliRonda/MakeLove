@@ -4,8 +4,9 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { to: '/', label: 'Inicio', icon: '🏠' },
   { to: '/actions', label: 'Acciones', icon: '✓' },
-  { to: '/calendar', label: 'Calendario', icon: '📅' },
   { to: '/requests', label: 'Solicitudes', icon: '📨' },
+  { to: '/historia', label: 'Historia', icon: '✨' },
+  { to: '/tienda', label: 'Tienda', icon: '💎' },
 ]
 
 export function Nav() {

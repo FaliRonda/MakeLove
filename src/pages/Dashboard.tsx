@@ -1,12 +1,14 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { WeeklyGoalSection } from '@/components/dashboard/WeeklyGoalSection'
+import { HistoriaPreviewSection } from '@/components/dashboard/HistoriaPreviewSection'
 import { useAuth } from '@/hooks/useAuth'
 import { useUsers } from '@/hooks/useUsers'
 import { usePendingRequestsForUser } from '@/hooks/useRequests'
 import { useBalanceHistory } from '@/hooks/useBalanceHistory'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/Avatar'
+import { UserName } from '@/components/UserName'
 import { experienceAfterTransactionsDesc } from '@/lib/experienceHistory'
 import { formatDateTime } from '@/lib/utils'
 import { getLevelFromLifetime } from '@/lib/levels'
@@ -50,6 +52,8 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <HistoriaPreviewSection userId={profile?.id} />
+
       <div className="bg-app-surface rounded-2xl p-6 shadow-sm border border-app-border">
         <h2 className="text-lg font-semibold text-app-foreground mb-4">Ranking</h2>
         <div className="space-y-3">
@@ -87,7 +91,11 @@ export function Dashboard() {
                   } ${isTop ? 'text-base' : 'text-sm'}`}
                 >
                   <span className="truncate min-w-0">
-                    {user.name}
+                    <UserName
+                      name={user.name}
+                      nameColor={user.equipped_name_color}
+                      badge={user.equipped_badge}
+                    />
                     {isCurrentUser && (
                       <span className="ml-2 text-xs text-app-accent shrink-0">(tú)</span>
                     )}

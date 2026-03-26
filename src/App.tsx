@@ -13,9 +13,13 @@ import { Calendar } from '@/pages/Calendar'
 import { Requests } from '@/pages/Requests'
 import { Notifications } from '@/pages/Notifications'
 import { Profile } from '@/pages/Profile'
+import { Historia } from '@/pages/Historia'
+import { Tienda } from '@/pages/Tienda'
 import { AdminDashboard } from '@/pages/admin/AdminDashboard'
 import { ActionsManage } from '@/pages/admin/ActionsManage'
 import { UsersManage } from '@/pages/admin/UsersManage'
+import { CouplesManage } from '@/pages/admin/CouplesManage'
+import { HistoriaManage } from '@/pages/admin/HistoriaManage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,6 +63,8 @@ function AppRoutes() {
         <Route path="calendar" element={<Calendar />} />
         <Route path="requests" element={<Requests />} />
         <Route path="notifications" element={<Notifications />} />
+        <Route path="historia" element={<Historia />} />
+        <Route path="tienda" element={<Tienda />} />
         <Route path="profile" element={<Profile />} />
         <Route path="profile/:userId" element={<Profile />} />
       </Route>
@@ -73,7 +79,9 @@ function AppRoutes() {
       >
         <Route index element={<AdminDashboard />} />
         <Route path="actions" element={<ActionsManage />} />
-        <Route path="users" element={<UsersManage />} />
+          <Route path="couples" element={<CouplesManage />} />
+          <Route path="historia" element={<HistoriaManage />} />
+          <Route path="users" element={<UsersManage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
