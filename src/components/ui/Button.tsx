@@ -10,7 +10,6 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
-  /** Aplica estilos de botón al hijo (p. ej. `<Link>`) en lugar de renderizar `<button>`. */
   asChild?: boolean
 }
 
@@ -40,7 +39,7 @@ export function Button({
   if (asChild) {
     const child = Children.only(children)
     if (!isValidElement<{ className?: string }>(child)) {
-      throw new Error('Button con asChild requiere un único elemento React como hijo.')
+      throw new Error('Button with asChild expects a single React element child.')
     }
     const inactive = disabled || loading
     return cloneElement(child, {
