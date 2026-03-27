@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useUnreadCount } from '@/hooks/useNotifications'
+import { Avatar } from '@/components/Avatar'
 
 const LOGO_SRC = '/pinguslove-header.png'
 
 export function Header() {
-  const { profile, isAdmin } = useAuth()
+  const { profile } = useAuth()
   const { data: unreadCount = 0 } = useUnreadCount(profile?.id)
   const [logoError, setLogoError] = useState(false)
 
@@ -31,6 +32,8 @@ export function Header() {
             <>
               <span className="text-sm text-app-muted font-medium hidden sm:inline">
                 {profile.points_balance} pts
+                <span className="mx-1 text-app-border">|</span>
+                {profile.piedritas_balance ?? 0} 💎
               </span>
               <Link
                 to="/notifications"
@@ -46,17 +49,22 @@ export function Header() {
                   </span>
                 )}
               </Link>
-              {isAdmin && (
-                <Link to="/admin" className="text-app-muted hover:text-app-foreground text-sm font-medium">
-                  Admin
-                </Link>
-              )}
               <Link
                 to="/profile"
-                className="text-app-foreground font-medium hover:text-app-accent text-sm truncate max-w-[120px] sm:max-w-[180px]"
+                className="rounded-full transition-opacity hover:opacity-90"
                 title="Ir a mi perfil"
+                aria-label="Ir a mi perfil"
               >
-                {profile.name}
+                <Avatar
+                  avatarUrl={
+                    profile.avatar_url
+                      ? `${profile.avatar_url}?t=${profile.updated_at || ''}`
+                      : null
+                  }
+                  name={profile.name}
+                  size="sm"
+                  className="border border-app-border"
+                />
               </Link>
             </>
           )}

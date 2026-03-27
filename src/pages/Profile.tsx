@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import Cropper, { type Area } from 'react-easy-crop'
 import { useAuth } from '@/hooks/useAuth'
 import { useUser, useUpdateUser } from '@/hooks/useUsers'
@@ -76,7 +76,7 @@ function getInitials(name: string): string {
 
 export function Profile() {
   const { userId: paramUserId } = useParams()
-  const { profile, signOut, refetchProfile, user } = useAuth()
+  const { profile, signOut, refetchProfile, user, isAdmin } = useAuth()
   const { data: viewedUser } = useUser(paramUserId ?? undefined)
   const updateUser = useUpdateUser()
   const { status: pushStatus, isRegistering, registerPush, unregisterPush } = usePushNotifications(profile?.id)
@@ -507,6 +507,11 @@ export function Profile() {
               {!profile && user && (
                 <Button variant="secondary" size="sm" onClick={() => refetchProfile()}>
                   Reintentar cargar perfil
+                </Button>
+              )}
+              {isAdmin && (
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <Link to="/admin">Admin</Link>
                 </Button>
               )}
               <Button variant="outline" onClick={() => signOut()} className="w-full sm:w-auto">
