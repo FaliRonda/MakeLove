@@ -14,25 +14,28 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-app-surface/95 backdrop-blur border-b border-app-border">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 text-app-foreground font-bold text-xl">
+        <Link
+          to="/"
+          className="flex items-center gap-1.5 sm:gap-2 text-app-foreground font-bold text-lg sm:text-xl min-w-0 pr-2"
+        >
           {!logoError ? (
             <img
               src={LOGO_SRC}
               alt=""
-              className="h-9 w-9 shrink-0 object-contain"
+              className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 object-contain"
               onError={() => setLogoError(true)}
             />
           ) : (
             <span className="text-2xl shrink-0">♥</span>
           )}
-          PingusLove
+          <span className="truncate">PingusLove</span>
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 min-w-0">
           {profile && (
             <>
-              <span className="text-sm text-app-muted font-medium hidden sm:inline">
+              <span className="text-xs sm:text-sm text-app-muted font-medium tabular-nums whitespace-nowrap shrink-0">
                 {profile.points_balance} pts
-                <span className="mx-1 text-app-border">|</span>
+                <span className="mx-0.5 sm:mx-1 text-app-border">|</span>
                 {profile.piedritas_balance ?? 0} 💎
               </span>
               <Link
