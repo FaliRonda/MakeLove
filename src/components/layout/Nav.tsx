@@ -14,20 +14,20 @@ export function Nav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-app-surface border-t border-app-border z-40">
-      <div className="max-w-2xl mx-auto px-2 py-2 flex justify-around">
+      <div className="max-w-2xl mx-auto px-1 py-1 flex">
         {navItems.map(({ to, label, icon }) => (
           <Link
             key={to}
             to={to}
             className={cn(
-              'flex flex-col items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+              'flex flex-1 flex-col items-center gap-0.5 px-1 py-2 rounded-lg text-xs font-medium transition-colors min-w-0',
               location.pathname === to || (to !== '/' && location.pathname.startsWith(to))
                 ? 'text-app-muted bg-app-bg'
                 : 'text-app-accent hover:bg-app-bg/50'
             )}
           >
-            <span className="text-lg">{icon}</span>
-            {label}
+            <span className="text-base leading-none">{icon}</span>
+            <span className="truncate w-full text-center leading-tight">{label}</span>
           </Link>
         ))}
       </div>
