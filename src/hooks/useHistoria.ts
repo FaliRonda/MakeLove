@@ -1,13 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getRestHeaders } from '@/lib/supabase'
 
-type HistoriaProgress = {
+export type HistoriaProgress = {
   is_complete: boolean
   progress_value: number
   progress_target: number
 }
 
-type HistoriaMission = {
+export type HistoriaMissionRequirement = {
+  metric_type: string
+  required_amount: number
+}
+
+export type HistoriaMission = {
   id: string
   order_number: number
   title: string
@@ -15,10 +20,12 @@ type HistoriaMission = {
   target_type: 'individual' | 'couple'
   reward_piedritas: number
   claimed: boolean
+  /** Presente cuando el backend expone mission_requirements (migración 032+). */
+  requirements?: HistoriaMissionRequirement[]
   progress: HistoriaProgress | null
 }
 
-type HistoriaChapter = {
+export type HistoriaChapter = {
   id: string
   name: string
   order_number: number
@@ -27,7 +34,7 @@ type HistoriaChapter = {
   missions: HistoriaMission[]
 }
 
-type HistoriaState = {
+export type HistoriaState = {
   as_of: string
   user_id: string
   partner_user_id: string | null

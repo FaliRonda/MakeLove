@@ -1,6 +1,14 @@
 import { Link } from 'react-router-dom'
 import { useActiveHistoriaState } from '@/hooks/useHistoria'
 import { formatDate } from '@/lib/utils'
+import { HistoriaSagaProgress } from '@/components/historia/HistoriaSagaProgress'
+
+function daysRemainingMadrid(storyEndDate: string, todayISO: string): number {
+  if (todayISO > storyEndDate) return 0
+  const t = new Date(`${todayISO}T12:00:00`)
+  const e = new Date(`${storyEndDate}T12:00:00`)
+  return Math.max(0, Math.round((e.getTime() - t.getTime()) / 86_400_000))
+}
 
 function todayMadridISODate(): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -24,19 +32,16 @@ export function HistoriaPreviewSection({ userId }: { userId: string | undefined 
   }
 
   const story = historiaState?.story
-  if (!story) return null
+  if (!story || !historiaState?.chapters?.length) return null
 
   const activeChapter =
     historiaState.chapters.find((ch) => ch.start_date <= todayISO && todayISO <= ch.end_date) ??
     historiaState.chapters[0] ??
     null
 
-  const allMissions = (historiaState?.chapters ?? []).flatMap((ch) => ch.missions)
-  const totalMissions = allMissions.length
-  const completedMissions = allMissions.filter((m) => m.claimed).length
+  const allMissions = historiaState.chapters.flatMap((ch) => ch.missions)
   const claimable = allMissions.filter((m) => m.progress?.is_complete && !m.claimed)
-  const pendingPiedritas = claimable.reduce((s, m) => s + m.reward_piedritas, 0)
-  const progressPct = totalMissions > 0 ? (completedMissions / totalMissions) * 100 : 0
+  const restantes = daysRemainingMadrid(story.end_date, todayISO)
 
   return (
     <Link
@@ -63,37 +68,22 @@ export function HistoriaPreviewSection({ userId }: { userId: string | undefined 
               {claimable.length} por reclamar
             </span>
           )}
-          <p className="text-xs text-app-muted">
-            {formatDate(story.start_date)} – {formatDate(story.end_date)}
+          <p className="text-xs text-app-muted">{formatDate(story.start_date)} – {formatDate(story.end_date)}</p>
+          <p className="text-[11px] text-app-muted tabular-nums mt-0.5 whitespace-nowrap">
+            {restantes} {restantes === 1 ? 'día restante' : 'días restantes'}
           </p>
         </div>
       </div>
 
-      <div
-        className="relative h-2 w-full overflow-hidden rounded-full bg-app-bg border border-app-border mb-2"
-        role="progressbar"
-        aria-valuenow={completedMissions}
-        aria-valuemin={0}
-        aria-valuemax={totalMissions}
-      >
-        {progressPct > 0 && (
-          <div
-            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-pink-500 via-rose-400 to-orange-400 transition-all duration-500"
-            style={{ width: `${progressPct}%` }}
-          />
-        )}
-      </div>
-
-      <div className="flex items-center justify-between text-xs text-app-muted">
-        <span className="tabular-nums">
-          {completedMissions}/{totalMissions} misiones reclamadas
-        </span>
-        {pendingPiedritas > 0 && (
-          <span className="font-semibold text-app-accent tabular-nums">
-            +{pendingPiedritas} 💎 disponibles
-          </span>
-        )}
-      </div>
+      <HistoriaSagaProgress
+        storyName={story.name}
+        storyStartDate={story.start_date}
+        storyEndDate={story.end_date}
+        chapters={historiaState.chapters}
+        todayISO={todayISO}
+        variant="compact"
+        showTitle={false}
+      />
     </Link>
   )
 }
