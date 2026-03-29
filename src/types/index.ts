@@ -68,6 +68,8 @@ export interface ActionRequest {
   created_at: string
   expires_at: string
   responded_at: string | null
+  /** Momento en que el solicitante confirmó la realización y se movieron los puntos. */
+  confirmed_at?: string | null
 }
 
 export interface Notification {

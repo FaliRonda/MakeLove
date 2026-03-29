@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { useActionRequests, usePendingRequestsForUser, useAcceptRequest, useRejectRequest, useCreateRequest, useCancelRequest, useRevertRequest } from '@/hooks/useRequests'
+import { useActionRequests, usePendingRequestsForUser, useAcceptRequest, useConfirmRequestCompletion, useRejectRequest, useCreateRequest, useCancelRequest, useRevertRequest } from '@/hooks/useRequests'
 import { useActiveActionTypes } from '@/hooks/useActions'
 import { useUsers } from '@/hooks/useUsers'
 import { Button } from '@/components/ui/Button'
@@ -21,19 +21,32 @@ export function Requests() {
   const { data: allRequests = [] } = useActionRequests()
 
   const acceptRequest = useAcceptRequest()
+  const confirmRequestCompletion = useConfirmRequestCompletion()
   const rejectRequest = useRejectRequest()
   const cancelRequest = useCancelRequest()
   const revertRequest = useRevertRequest()
   const createRequest = useCreateRequest()
 
+  const activeStatuses = new Set(['pending', 'accepted_pending'])
   const resolvedRequests = allRequests
-    .filter((r) => (r.target_user_id === profile?.id || r.requester_id === profile?.id) && r.status !== 'pending')
+    .filter(
+      (r) =>
+        (r.target_user_id === profile?.id || r.requester_id === profile?.id) && !activeStatuses.has(r.status)
+    )
     .sort((a, b) => new Date(b.responded_at ?? b.created_at).getTime() - new Date(a.responded_at ?? a.created_at).getTime())
   const requestsToShow = tab === 'pending' ? pendingRequests : resolvedRequests
 
   const handleAccept = async (id: string) => {
     try {
       await acceptRequest.mutateAsync(id)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error')
+    }
+  }
+
+  const handleConfirmCompletion = async (id: string) => {
+    try {
+      await confirmRequestCompletion.mutateAsync(id)
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error')
     }
@@ -161,6 +174,7 @@ export function Requests() {
           const isTarget = req.target_user_id === profile?.id
           const isRequester = req.requester_id === profile?.id
           const isPending = req.status === 'pending'
+          const awaitingConfirm = req.status === 'accepted_pending'
           const expired = new Date(req.expires_at) < new Date()
 
           return (
@@ -178,13 +192,27 @@ export function Requests() {
                   </p>
                   <span className={`inline-block mt-2 text-xs px-2 py-0.5 rounded ${
                     req.status === 'pending' ? 'bg-amber-900/60 text-amber-200' :
+                    req.status === 'accepted_pending' ? 'bg-cyan-900/60 text-cyan-200' :
                     req.status === 'accepted' ? 'bg-green-900/60 text-green-200' :
                     req.status === 'rejected' ? 'bg-red-900/60 text-red-200' :
                     req.status === 'cancelled' ? 'bg-slate-600 text-slate-300' :
                     'bg-slate-700 text-slate-300'
                   }`}>
-                    {({ pending: 'Pendiente', accepted: 'Aceptado', rejected: 'Rechazado', expired: 'Caducado', cancelled: 'Cancelada' })[req.status] ?? req.status}
+                    {req.status === 'accepted_pending'
+                      ? isRequester
+                        ? 'Aceptada · te toca confirmar'
+                        : 'Aceptada · cierre pendiente'
+                      : ({
+                          pending: 'Pendiente',
+                          accepted: 'Completada',
+                          rejected: 'Rechazado',
+                          expired: 'Caducado',
+                          cancelled: 'Cancelada',
+                        })[req.status] ?? req.status}
                   </span>
+                  {awaitingConfirm && isTarget && (
+                    <p className="text-xs text-app-muted mt-2">Esperando a que el solicitante confirme que hiciste la acción para abonarte los puntos.</p>
+                  )}
                 </div>
                 {isTarget && isPending && !expired && (
                   <div className="flex gap-2">
@@ -203,7 +231,21 @@ export function Requests() {
                     </Button>
                   </div>
                 )}
-                {!isPending && (isTarget || isRequester) && (
+                {isRequester && awaitingConfirm && (
+                  <div className="flex gap-2 flex-wrap justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => handleConfirmCompletion(req.id)}
+                      loading={confirmRequestCompletion.isPending}
+                    >
+                      Confirmar realización
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleCancel(req.id)} loading={cancelRequest.isPending}>
+                      Cancelar
+                    </Button>
+                  </div>
+                )}
+                {!isPending && !awaitingConfirm && (isTarget || isRequester) && (
                   <Button size="sm" variant="outline" onClick={() => setRevertRequestId(req.id)} loading={revertRequest.isPending}>
                     Revertir
                   </Button>

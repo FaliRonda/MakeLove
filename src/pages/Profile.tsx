@@ -58,6 +58,31 @@ function orphanBalanceHistoryItems(txs: BalanceTransaction[]): HistoryItem[] {
     }))
 }
 
+/**
+ * Historial de saldo ya tiene la fila de “acción confirmada por pareja”, pero el listado
+ * mezclado solo incluía esos movimientos si reference_id era null. Si por caché/RLS no
+ * llega el action_record con record_claim_id, aquí mostramos la misma información vía
+ * balance_transactions (sin duplicar si ya hay registro enlazado al claim).
+ */
+function confirmedClaimFallbackBalanceItems(
+  txs: BalanceTransaction[],
+  records: ActionRecordWithDetails[]
+): HistoryItem[] {
+  const claimIds = new Set(
+    records
+      .map((r) => r.record_claim_id)
+      .filter((id): id is string => id != null && id !== '')
+      .map((id) => String(id))
+  )
+  const items: HistoryItem[] = []
+  for (const t of txs) {
+    if (t.event_type !== 'performed_for_confirmed' || !t.reference_id) continue
+    if (claimIds.has(String(t.reference_id))) continue
+    items.push({ kind: 'balance', date: t.created_at, id: `b-${t.id}`, tx: t })
+  }
+  return items
+}
+
 function mergeAndSortHistory(base: HistoryItem[], extra: HistoryItem[]): HistoryItem[] {
   return [...base, ...extra].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -135,12 +160,11 @@ export function Profile() {
     : []
   const historyItems = useMemo(() => {
     if (!displayUser?.id) return []
-    const base = buildHistoryItems(
-      actionRecords as ActionRecordWithDetails[],
-      involvedRequests
-    )
+    const recs = actionRecords as ActionRecordWithDetails[]
+    const base = buildHistoryItems(recs, involvedRequests)
     const orphans = orphanBalanceHistoryItems(balanceTransactions)
-    return mergeAndSortHistory(base, orphans)
+    const claimFallback = confirmedClaimFallbackBalanceItems(balanceTransactions, recs)
+    return mergeAndSortHistory(mergeAndSortHistory(base, orphans), claimFallback)
   }, [displayUser?.id, actionRecords, involvedRequests, balanceTransactions])
   const visibleHistory = historyItems.slice(0, historyLimit)
   const hasMoreHistory = historyItems.length > historyLimit
@@ -408,15 +432,17 @@ export function Profile() {
                   const req = item.request
                   const actionName = req.action_types?.name ?? 'acción'
                   const statusLabel =
-                    req.status === 'accepted'
-                      ? 'Aceptada'
-                      : req.status === 'rejected'
-                        ? 'Rechazada'
-                        : req.status === 'expired'
-                          ? 'Caducada'
-                          : req.status === 'cancelled'
-                            ? 'Cancelada'
-                            : req.status
+                    req.status === 'accepted_pending'
+                      ? 'Aceptada (pendiente de confirmación)'
+                      : req.status === 'accepted'
+                        ? 'Completada'
+                        : req.status === 'rejected'
+                          ? 'Rechazada'
+                          : req.status === 'expired'
+                            ? 'Caducada'
+                            : req.status === 'cancelled'
+                              ? 'Cancelada'
+                              : req.status
                   const bt = balanceByReferenceId.get(req.id)?.[0]
                   return (
                     <li

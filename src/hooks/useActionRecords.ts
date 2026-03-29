@@ -17,6 +17,7 @@ export function useActionRecords(options: UseActionRecordsOptions = {}) {
 
   return useQuery({
     queryKey: ['action_records', userId, actionTypeId, from?.toISOString(), to?.toISOString()],
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const h = getRestHeaders()
       if (h) {

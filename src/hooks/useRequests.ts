@@ -49,11 +49,10 @@ export function usePendingRequestsForUser(userId: string | undefined) {
       if (h && userId) {
         await expirePendingRequests(h)
         const now = new Date().toISOString()
+        const andFilter = `(or(requester_id.eq.${userId},target_user_id.eq.${userId}),or(and(status.eq.pending,expires_at.gt.${now}),status.eq.accepted_pending))`
         const q = new URLSearchParams({
           select: SELECT_REQUESTS,
-          or: `(target_user_id.eq.${userId},requester_id.eq.${userId})`,
-          status: 'eq.pending',
-          expires_at: `gt.${now}`,
+          and: andFilter,
           order: 'created_at.desc',
         })
         const res = await fetch(`${h.url}/rest/v1/action_requests?${q}`, {
@@ -65,12 +64,12 @@ export function usePendingRequestsForUser(userId: string | undefined) {
       }
       if (!supabase || !userId) return []
       await supabase.rpc('expire_pending_requests')
+      const nowIso = new Date().toISOString()
       const { data, error } = await supabase
         .from('action_requests')
         .select(`*,action_types(id,name,points_value),requester:users!requester_id(id,name,email),target:users!target_user_id(id,name,email)`)
-        .or(`target_user_id.eq.${userId},requester_id.eq.${userId}`)
-        .eq('status', 'pending')
-        .gt('expires_at', new Date().toISOString())
+        .or(`and(status.eq.pending,expires_at.gt.${nowIso}),status.eq.accepted_pending`)
+        .or(`requester_id.eq.${userId},target_user_id.eq.${userId}`)
         .order('created_at', { ascending: false })
       if (error) throw error
       return (data ?? []) as ActionRequest[]
@@ -157,9 +156,45 @@ export function useAcceptRequest() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['action_requests'] })
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
+  })
+}
+
+export function useConfirmRequestCompletion() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (requestId: string) => {
+      const h = getRestHeaders()
+      if (h) {
+        const res = await fetch(`${h.url}/rest/v1/rpc/confirm_request_completion`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: h.key, Authorization: `Bearer ${h.token}` },
+          body: JSON.stringify({ p_request_id: requestId }),
+        })
+        if (!res.ok) {
+          const text = await res.text()
+          let msg = `Error ${res.status}`
+          try {
+            const j = JSON.parse(text)
+            if (j?.message) msg = j.message
+          } catch {
+            /* ignore */
+          }
+          throw new Error(msg)
+        }
+        return
+      }
+      if (!supabase) throw new Error('Supabase no configurado')
+      const { error } = await supabase.rpc('confirm_request_completion', { p_request_id: requestId })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['action_requests'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
       queryClient.invalidateQueries({ queryKey: ['balance_transactions'] })
       queryClient.invalidateQueries({ queryKey: ['weekly_collab_goal'] })
+      queryClient.invalidateQueries({ queryKey: ['action_records'] })
     },
   })
 }

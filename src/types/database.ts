@@ -6,7 +6,13 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type RequestStatus = 'pending' | 'accepted' | 'rejected' | 'expired' | 'cancelled'
+export type RequestStatus =
+  | 'pending'
+  | 'accepted_pending'
+  | 'accepted'
+  | 'rejected'
+  | 'expired'
+  | 'cancelled'
 
 export interface Database {
   public: {
@@ -145,6 +151,7 @@ export interface Database {
           created_at: string
           expires_at: string
           responded_at: string | null
+          confirmed_at: string | null
         }
         Insert: {
           id?: string
@@ -157,6 +164,7 @@ export interface Database {
           created_at?: string
           expires_at: string
           responded_at?: string | null
+          confirmed_at?: string | null
         }
         Update: {
           id?: string
@@ -169,6 +177,7 @@ export interface Database {
           created_at?: string
           expires_at?: string
           responded_at?: string | null
+          confirmed_at?: string | null
         }
       }
       push_subscriptions: {
@@ -236,6 +245,7 @@ export interface Database {
       reject_request: { Args: { p_request_id: string }; Returns: void }
       create_action_request: { Args: { p_target_user_id: string; p_action_type_id: string }; Returns: string }
       cancel_request: { Args: { p_request_id: string }; Returns: void }
+      confirm_request_completion: { Args: { p_request_id: string }; Returns: void }
     }
   }
 }

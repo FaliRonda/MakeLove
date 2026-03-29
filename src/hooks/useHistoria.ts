@@ -51,6 +51,7 @@ export function useActiveHistoriaState(userId: string | undefined) {
     queryKey: ['historia_state', userId],
     enabled: !!userId,
     staleTime: 20_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!userId) return null
       const h = getRestHeaders()

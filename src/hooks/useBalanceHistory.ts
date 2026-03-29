@@ -5,6 +5,7 @@ import type { BalanceTransaction } from '@/types'
 export function useBalanceHistory(userId: string | undefined) {
   return useQuery({
     queryKey: ['balance_transactions', userId],
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const h = getRestHeaders()
       if (h && userId) {

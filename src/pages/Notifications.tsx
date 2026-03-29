@@ -25,6 +25,10 @@ function notificationMessageFallback(type: string): string {
       return 'La solicitud fue rechazada. Has ganado 0.2× los puntos (ver historial de saldo).'
     case 'request_expired':
       return 'La solicitud ha caducado. Has ganado 0.2× los puntos (ver historial de saldo).'
+    case 'request_accepted_pending':
+      return 'Tu solicitud fue aceptada. Confírmala en Solicitudes cuando se haya realizado.'
+    case 'request_confirmed_target':
+      return 'Una solicitud que cumpliste ha sido confirmada. Los puntos se han abonado.'
     default:
       return type
   }
@@ -39,6 +43,18 @@ function notificationMessage(
   if (referenceId && type === 'action_request') {
     const r = requestMap[referenceId]
     if (r) return `${r.requesterName} te solicita un ${r.actionName}`
+  }
+  if (referenceId && type === 'request_accepted_pending') {
+    const r = requestMap[referenceId]
+    if (r) {
+      return `${r.targetName} ha aceptado tu solicitud de ${r.actionName}. Confírmala en Solicitudes cuando la haya realizado.`
+    }
+  }
+  if (referenceId && type === 'request_confirmed_target') {
+    const r = requestMap[referenceId]
+    if (r) {
+      return `${r.requesterName} ha confirmado la solicitud de ${r.actionName}. Los puntos se han abonado.`
+    }
   }
   if (referenceId && ['performed_for_request', 'performed_for_confirmed', 'performed_for_cancelled', 'performed_for_you_confirmed', 'performed_for_you_cancelled'].includes(type)) {
     const c = claimMap[referenceId]
@@ -136,7 +152,8 @@ export function Notifications() {
                     </Button>
                   </div>
                 )}
-                {n.reference_id && n.type === 'action_request' && (
+                {n.reference_id &&
+                  ['action_request', 'request_accepted_pending', 'request_confirmed_target'].includes(n.type) && (
                   <Link
                     to="/requests"
                     className="text-app-accent text-sm font-medium hover:underline shrink-0"

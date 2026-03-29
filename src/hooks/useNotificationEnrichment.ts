@@ -3,10 +3,11 @@ import { supabase, getRestHeaders } from '@/lib/supabase'
 import type { Notification } from '@/types'
 
 const CLAIM_SELECT = 'id,status,claimer:users!claimer_id(name),target:users!target_user_id(name),action_types(name)'
-const REQUEST_SELECT = 'id,requester:users!requester_id(name),action_types(name)'
+const REQUEST_SELECT =
+  'id,requester:users!requester_id(name),target:users!target_user_id(name),action_types(name)'
 
 export type ClaimEnrichment = { claimerName: string; targetName: string; actionName: string; status?: string }
-export type RequestEnrichment = { requesterName: string; actionName: string }
+export type RequestEnrichment = { requesterName: string; targetName: string; actionName: string }
 
 function fetchClaims(ids: string[]): Promise<Record<string, ClaimEnrichment>> {
   if (ids.length === 0) return Promise.resolve({})
@@ -67,10 +68,16 @@ function fetchRequests(ids: string[]): Promise<Record<string, RequestEnrichment>
       .then((rows: unknown[]) => {
         const map: Record<string, RequestEnrichment> = {}
         for (const row of Array.isArray(rows) ? rows : []) {
-          const r = row as { id?: string; requester?: { name?: string }; action_types?: { name?: string } }
+          const r = row as {
+            id?: string
+            requester?: { name?: string }
+            target?: { name?: string }
+            action_types?: { name?: string }
+          }
           if (r?.id) {
             map[r.id] = {
               requesterName: r.requester?.name ?? 'Alguien',
+              targetName: r.target?.name ?? 'alguien',
               actionName: r.action_types?.name ?? 'acción',
             }
           }
@@ -86,9 +93,15 @@ function fetchRequests(ids: string[]): Promise<Record<string, RequestEnrichment>
       .in('id', ids)
     if (error || !rows) return {}
     const map: Record<string, RequestEnrichment> = {}
-    for (const r of rows as { id: string; requester?: { name?: string }; action_types?: { name?: string } }[]) {
+    for (const r of rows as {
+      id: string
+      requester?: { name?: string }
+      target?: { name?: string }
+      action_types?: { name?: string }
+    }[]) {
       map[r.id] = {
         requesterName: r.requester?.name ?? 'Alguien',
+        targetName: r.target?.name ?? 'alguien',
         actionName: r.action_types?.name ?? 'acción',
       }
     }
@@ -105,9 +118,14 @@ export function useNotificationEnrichment(notifications: Notification[]) {
       ].includes(n.type))
       .map((n) => n.reference_id!)
   )]
+  const requestRelatedTypes = [
+    'action_request',
+    'request_accepted_pending',
+    'request_confirmed_target',
+  ]
   const requestIds = [...new Set(
     notifications
-      .filter((n) => n.reference_id && n.type === 'action_request')
+      .filter((n) => n.reference_id && requestRelatedTypes.includes(n.type))
       .map((n) => n.reference_id!)
   )]
 

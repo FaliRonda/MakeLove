@@ -23,6 +23,10 @@ function messageForType(type: string, _referenceId: string | null): { title: str
       return { title: 'PingusLove', body: 'La solicitud fue rechazada. Has ganado 0.2× los puntos.' }
     case 'request_expired':
       return { title: 'PingusLove', body: 'La solicitud ha caducado. Has ganado 0.2× los puntos.' }
+    case 'request_accepted_pending':
+      return { title: 'PingusLove', body: 'Tu solicitud fue aceptada. Confírmala cuando se haya realizado.' }
+    case 'request_confirmed_target':
+      return { title: 'PingusLove', body: 'Han confirmado una solicitud que cumpliste. Los puntos se han abonado.' }
     default:
       return { title: 'PingusLove', body: 'Tienes una nueva notificación' }
   }
@@ -88,7 +92,14 @@ Deno.serve(async (req: Request) => {
       body = msg.body
     }
 
-    const requestRelated = ['action_request', 'request_rejected', 'request_expired', 'performed_for_request'].includes(type)
+    const requestRelated = [
+      'action_request',
+      'request_rejected',
+      'request_expired',
+      'request_accepted_pending',
+      'request_confirmed_target',
+      'performed_for_request',
+    ].includes(type)
     const openUrl = requestRelated ? '/requests' : '/notifications'
 
     const { data: subs, error } = await supabase
