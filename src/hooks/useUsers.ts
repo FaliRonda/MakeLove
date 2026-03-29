@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getRestHeaders, getSessionToken } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
 import type { User } from '@/types'
 
 export function useUser(userId: string | undefined) {
@@ -28,12 +29,16 @@ export function useUser(userId: string | undefined) {
 }
 
 export function useUsers(adminOnly = false) {
+  const { profile } = useAuth()
   // React Query cachea por `queryKey`. Si el token de sesión no está aún listo en el primer render,
   // la query puede quedarse con `[]` (por RLS o fallo de auth) hasta que refresques manualmente.
   // Este flag fuerza un refetch cuando la sesión aparece.
   const hasSessionToken = !!getSessionToken()
   return useQuery({
     queryKey: ['users', adminOnly, hasSessionToken],
+    // No pedir lista hasta tener perfil: useAuth suele poner loading=false antes de que el perfil
+    // termine de cargar; una petición demasiado pronto devuelve [] por RLS y se cachea mal.
+    enabled: !!profile?.id,
     queryFn: async () => {
       const h = getRestHeaders()
       if (h) {
