@@ -4,7 +4,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { useUnreadCount } from '@/hooks/useNotifications'
 import { Avatar } from '@/components/Avatar'
 
-const LOGO_SRC = '/pinguslove-header.png'
+/** Mismo activo que favicon/PWA; tamaño acotado para la barra (el icono completo es cuadrado grande). */
+const LOGO_SRC = '/pinguslove-icon.png'
 
 export function Header() {
   const { profile } = useAuth()
@@ -22,7 +23,7 @@ export function Header() {
             <img
               src={LOGO_SRC}
               alt=""
-              className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 object-contain"
+              className="h-7 w-7 sm:h-8 sm:w-8 shrink-0 object-contain"
               onError={() => setLogoError(true)}
             />
           ) : (
