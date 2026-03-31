@@ -69,45 +69,53 @@ export function Dashboard() {
                   isCurrentUser ? 'bg-app-accent/15 border border-app-accent/40' : 'bg-app-bg'
                 } ${isTop ? 'scale-[1.02]' : ''}`}
               >
-                <span className="w-10 shrink-0 flex justify-end">
+                <span className="w-10 shrink-0 flex justify-end self-center">
                   <RankBadge position={position} />
                 </span>
-                <Link to={profilePath} className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-app-accent">
-                  <Avatar
-                    avatarUrl={
-                      user.avatar_url
-                        ? `${user.avatar_url}?t=${user.updated_at || ''}`
-                        : null
-                    }
-                    name={user.name}
-                    size={isTop ? 'md' : 'sm'}
-                    className={isTop ? 'shadow-lg' : ''}
-                  />
-                </Link>
-                <Link
-                  to={profilePath}
-                  className={`flex-1 min-w-0 flex items-center gap-2 font-medium hover:text-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent rounded ${
-                    isCurrentUser ? 'text-app-foreground' : 'text-app-muted'
-                  } ${isTop ? 'text-base' : 'text-sm'}`}
-                >
-                  <span className="truncate min-w-0">
-                    <UserName
-                      name={user.name}
-                      nameColor={user.equipped_name_color}
-                      badge={user.equipped_badge}
-                    />
-                    {isCurrentUser && (
-                      <span className="ml-2 text-xs text-app-accent shrink-0">(tú)</span>
-                    )}
-                  </span>
-                  <span
-                    className="shrink-0 text-xs text-app-muted font-medium tabular-nums"
-                    title="Nivel por puntos de vida acumulados"
+                <div className="flex flex-1 min-w-0 items-center gap-3 sm:gap-4">
+                  <Link
+                    to={profilePath}
+                    className={`shrink-0 flex flex-col items-center text-center max-w-[9.5rem] sm:max-w-[11rem] rounded-xl px-1 py-0.5 font-medium hover:text-app-accent focus:outline-none focus:ring-2 focus:ring-app-accent focus:ring-offset-2 focus:ring-offset-app-bg ${
+                      isCurrentUser ? 'text-app-foreground' : 'text-app-muted'
+                    }`}
                   >
-                    Nvl {getLevelFromLifetime(user.lifetime_points_earned ?? 100)}
-                  </span>
-                </Link>
-                <span className={`shrink-0 font-bold tabular-nums ${position === 1 ? 'text-amber-400' : position === 2 ? 'text-slate-300' : 'text-app-foreground'}`}>
+                    <Avatar
+                      avatarUrl={
+                        user.avatar_url
+                          ? `${user.avatar_url}?t=${user.updated_at || ''}`
+                          : null
+                      }
+                      name={user.name}
+                      size={isTop ? 'md' : 'sm'}
+                      className={isTop ? 'shadow-lg shrink-0' : 'shrink-0'}
+                    />
+                    <span
+                      className={`mt-2 w-full min-w-0 leading-snug ${isTop ? 'text-sm sm:text-base' : 'text-xs sm:text-sm'}`}
+                    >
+                      <span className="block truncate">
+                        <UserName
+                          name={user.name}
+                          nameColor={user.equipped_name_color}
+                          badge={user.equipped_badge}
+                        />
+                      </span>
+                    </span>
+                  </Link>
+                  <div className="flex flex-col justify-center gap-0.5 text-left min-w-0 py-0.5">
+                    {isCurrentUser && (
+                      <span className="text-[11px] sm:text-xs text-app-accent font-semibold whitespace-nowrap">
+                        (tú)
+                      </span>
+                    )}
+                    <span
+                      className="text-[11px] sm:text-xs text-app-muted font-medium tabular-nums whitespace-nowrap"
+                      title="Nivel por puntos de vida acumulados"
+                    >
+                      Nvl {getLevelFromLifetime(user.lifetime_points_earned ?? 100)}
+                    </span>
+                  </div>
+                </div>
+                <span className={`shrink-0 font-bold tabular-nums self-center ${position === 1 ? 'text-amber-400' : position === 2 ? 'text-slate-300' : 'text-app-foreground'}`}>
                   {user.points_balance} pts
                 </span>
               </div>

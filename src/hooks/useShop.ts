@@ -1,8 +1,37 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getRestHeaders } from '@/lib/supabase'
-import type { ShopItem, UserInventoryItem } from '@/types'
+import type { ShopItem, ShopItemType, UserInventoryItem } from '@/types'
 
 type RestHeaders = { url: string; key: string; token: string }
+
+type UserInventoryApiRow = {
+  id: string
+  user_id: string
+  item_id: string
+  acquired_at: string
+  expires_at: string | null
+  is_equipped: boolean
+  shop_items?: ShopItem | null
+}
+
+function mapInventoryRow(row: UserInventoryApiRow): UserInventoryItem {
+  const si = row.shop_items
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    item_id: row.item_id,
+    acquired_at: row.acquired_at,
+    expires_at: row.expires_at,
+    is_equipped: row.is_equipped,
+    name: si?.name ?? 'Objeto de la tienda',
+    description: si?.description ?? '',
+    item_type: (si?.item_type ?? 'badge') as ShopItemType,
+    color_value: si?.color_value ?? null,
+    badge_symbol: si?.badge_symbol ?? null,
+    is_temporary: si?.is_temporary ?? false,
+    is_couple_item: si?.is_couple_item ?? false,
+  }
+}
 
 function throwRestError(res: Response, text: string): never {
   let msg = `Error ${res.status}`
@@ -72,18 +101,11 @@ export function useUserInventory(userId: string | undefined) {
         const text = await res.text()
         if (!res.ok) throwRestError(res, text)
         const raw = text
-          ? (JSON.parse(text) as Array<UserInventoryItem & { shop_items: ShopItem }>)
+          ? (JSON.parse(text) as Array<
+              UserInventoryItem & { shop_items: ShopItem | null }
+            >)
           : []
-        return raw.map(({ shop_items: si, ...rest }) => ({
-          ...rest,
-          name: si.name,
-          description: si.description,
-          item_type: si.item_type,
-          color_value: si.color_value,
-          badge_symbol: si.badge_symbol,
-          is_temporary: si.is_temporary,
-          is_couple_item: si.is_couple_item,
-        })) as UserInventoryItem[]
+        return raw.map((row) => mapInventoryRow(row as UserInventoryApiRow))
       }
       if (!supabase) return []
       const { data, error } = await supabase
@@ -92,17 +114,8 @@ export function useUserInventory(userId: string | undefined) {
         .eq('user_id', userId)
       if (error) throw error
       return (
-        (data ?? []) as Array<UserInventoryItem & { shop_items: ShopItem }>
-      ).map(({ shop_items: si, ...rest }) => ({
-        ...rest,
-        name: si.name,
-        description: si.description,
-        item_type: si.item_type,
-        color_value: si.color_value,
-        badge_symbol: si.badge_symbol,
-        is_temporary: si.is_temporary,
-        is_couple_item: si.is_couple_item,
-      })) as UserInventoryItem[]
+        (data ?? []) as Array<UserInventoryItem & { shop_items: ShopItem | null }>
+      ).map((row) => mapInventoryRow(row as UserInventoryApiRow))
     },
   })
 }

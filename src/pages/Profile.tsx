@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/Button'
 import { Switch } from '@/components/ui/Switch'
 import { Avatar } from '@/components/Avatar'
 import { LevelAndMedalsSection } from '@/components/profile/LevelAndMedalsSection'
+import { ProfileInventorySection } from '@/components/profile/ProfileInventorySection'
+import { UserName } from '@/components/UserName'
 import { getCroppedImg } from '@/lib/cropImage'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@/types'
@@ -289,7 +291,13 @@ export function Profile() {
         <dl className="space-y-3">
           <div>
             <dt className="text-sm text-app-muted">Nombre</dt>
-            <dd className="font-medium text-app-foreground-dark">{displayUser.name}</dd>
+            <dd className="font-medium text-app-foreground-dark">
+              <UserName
+                name={displayUser.name}
+                nameColor={displayUser.equipped_name_color}
+                badge={displayUser.equipped_badge}
+              />
+            </dd>
           </div>
           <div>
             <dt className="text-sm text-app-muted">Estado</dt>
@@ -334,6 +342,14 @@ export function Profile() {
             <dt className="text-sm text-app-muted">Saldo</dt>
             <dd className="font-bold text-app-muted text-xl">{displayUser.points_balance} puntos</dd>
           </div>
+          {displayUser.piedritas_balance !== undefined && (
+            <div>
+              <dt className="text-sm text-app-muted">Piedritas</dt>
+              <dd className="font-semibold text-app-accent text-lg tabular-nums">
+                {displayUser.piedritas_balance} 💎
+              </dd>
+            </div>
+          )}
           {displayUser.created_at && (
             <div>
               <dt className="text-sm text-app-muted">{isOwnProfile ? 'Miembro desde' : 'Miembro desde'}</dt>
@@ -347,6 +363,8 @@ export function Profile() {
           lifetimePoints={displayUser.lifetime_points_earned ?? 100}
           isOwnProfile={isOwnProfile}
         />
+
+        {isOwnProfile && <ProfileInventorySection userId={displayUser.id} refetchProfile={refetchProfile} />}
 
         {/* Histórico: acciones y solicitudes (encima de push) */}
         <div className="mt-6 pt-6 border-t border-app-border">

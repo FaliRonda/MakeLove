@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useActiveHistoriaState, useClaimHistoriaMissionReward } from '@/hooks/useHistoria'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
@@ -48,10 +48,11 @@ function MissionProgressBar({
 }
 
 export function Historia() {
-  const { profile } = useAuth()
+  const { profile, refetchProfile } = useAuth()
   const userId = profile?.id
   const { data: historiaState, isLoading, error } = useActiveHistoriaState(userId)
   const claimMutation = useClaimHistoriaMissionReward(userId)
+  const [claimCelebration, setClaimCelebration] = useState<{ amount: number } | null>(null)
 
   const todayISO = useMemo(() => todayMadridISODate(), [])
 
@@ -195,7 +196,24 @@ export function Historia() {
                           <Button
                             size="sm"
                             disabled={!canClaim || claimMutation.isPending}
-                            onClick={() => void claimMutation.mutateAsync(mission.id)}
+                            onClick={() => {
+                              void claimMutation
+                                .mutateAsync(mission.id)
+                                .then(async (rewardAmount) => {
+                                  const amount =
+                                    typeof rewardAmount === 'number' && !Number.isNaN(rewardAmount)
+                                      ? rewardAmount
+                                      : mission.reward_piedritas
+                                  try {
+                                    await refetchProfile()
+                                  } finally {
+                                    setClaimCelebration({ amount })
+                                  }
+                                })
+                                .catch(() => {
+                                  /* error ya manejable vía UI del botón / futuro toast */
+                                })
+                            }}
                           >
                             {claimMutation.isPending && canClaim
                               ? 'Reclamando…'
@@ -216,6 +234,65 @@ export function Historia() {
         </div>
       ) : (
         story && <p className="text-sm text-app-muted">Aún no hay capítulos/misiones.</p>
+      )}
+
+      {claimCelebration && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 p-4 sm:items-center"
+          role="presentation"
+          onClick={() => setClaimCelebration(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-app-border bg-app-surface p-6 shadow-xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="piedritas-claim-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <style>{`
+              @keyframes historiaPiedritasShine {
+                0%, 100% {
+                  filter: drop-shadow(0 0 10px rgba(244, 114, 182, 0.85)) drop-shadow(0 0 24px rgba(251, 191, 36, 0.45));
+                  transform: scale(1) rotate(-2deg);
+                }
+                50% {
+                  filter: drop-shadow(0 0 22px rgba(251, 191, 36, 0.95)) drop-shadow(0 0 48px rgba(236, 72, 153, 0.55));
+                  transform: scale(1.12) rotate(2deg);
+                }
+              }
+            `}</style>
+            <div className="flex flex-col items-center text-center">
+              <div
+                className="text-6xl leading-none select-none"
+                style={{ animation: 'historiaPiedritasShine 2s ease-in-out infinite' }}
+                aria-hidden
+              >
+                💎
+              </div>
+              <h3 id="piedritas-claim-title" className="mt-4 text-lg font-semibold text-app-foreground">
+                ¡Enhorabuena!
+              </h3>
+              <p className="mt-2 text-sm text-app-muted">
+                Has conseguido{' '}
+                <span className="font-semibold tabular-nums text-app-accent">
+                  +{claimCelebration.amount}{' '}
+                  {claimCelebration.amount === 1 ? 'piedrita' : 'piedritas'}
+                </span>
+                .
+              </p>
+              {claimCelebration.amount === 0 ? (
+                <p className="mt-1 text-xs text-app-muted">
+                  Esta misión no suma piedritas a tu saldo (recompensa 0).
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-app-muted">Ya están en tu saldo; úsalas en la tienda cuando quieras.</p>
+              )}
+              <Button className="mt-6 w-full" type="button" onClick={() => setClaimCelebration(null)}>
+                Aceptar
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
