@@ -37,8 +37,8 @@ function AppRoutes() {
 
   if (blockOnLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-app-bg">
-        <div className="animate-pulse text-app-accent">Cargando...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-sky-400 font-medium">Cargando...</div>
       </div>
     )
   }

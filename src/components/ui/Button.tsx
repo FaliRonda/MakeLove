@@ -24,10 +24,13 @@ export function Button({
   ...props
 }: ButtonProps) {
   const classes = cn(
-    'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-app-accent focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none',
-    variant === 'primary' && 'bg-app-accent text-white hover:bg-app-accent-hover',
-    variant === 'secondary' && 'bg-app-surface-alt text-app-foreground hover:bg-app-border-hover',
-    variant === 'outline' && 'border-2 border-app-accent text-app-muted hover:bg-app-bg',
+    'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-app-accent focus:ring-offset-2 focus:ring-offset-app-bg disabled:opacity-50 disabled:pointer-events-none',
+    variant === 'primary' &&
+      'bg-app-accent text-app-bg shadow-accent hover:bg-app-accent-hover hover:shadow-accent-lg',
+    variant === 'secondary' &&
+      'bg-app-surface-alt text-app-foreground border border-app-border shadow-sm hover:bg-app-border hover:border-app-border-hover',
+    variant === 'outline' &&
+      'border-2 border-sky-400/50 text-app-foreground hover:bg-sky-400/10 hover:border-sky-400/70',
     variant === 'ghost' && 'text-app-muted hover:bg-app-bg',
     variant === 'danger' && 'bg-red-500 text-white hover:bg-red-600',
     size === 'sm' && 'px-3 py-1.5 text-sm',

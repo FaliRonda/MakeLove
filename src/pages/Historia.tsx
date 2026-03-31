@@ -39,7 +39,7 @@ function MissionProgressBar({
       </div>
       <div className="relative h-2 w-full overflow-hidden rounded-full bg-app-bg border border-app-border">
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-pink-500 via-rose-400 to-orange-400 transition-all duration-300"
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-teal-400 via-cyan-500 to-violet-600 transition-all duration-300"
           style={{ width: `${pct}%` }}
         />
       </div>

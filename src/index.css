@@ -3,7 +3,16 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-app-bg text-app-foreground-dark antialiased;
+    @apply font-sans text-app-foreground antialiased;
+    background-color: #0a0612;
+    background-image:
+      radial-gradient(ellipse 110% 55% at 50% -12%, rgba(124, 58, 237, 0.22), transparent 55%),
+      radial-gradient(ellipse 45% 38% at 105% 92%, rgba(56, 189, 248, 0.075), transparent 52%);
+    background-attachment: fixed;
   }
 }

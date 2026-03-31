@@ -27,9 +27,13 @@ export function Register({ loadError }: { loadError?: string | null }) {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-app-bg">
-        <div className="text-center">
-          <img src="/pinguslove-icon.png" alt="PingusLove" className="h-20 w-20 mx-auto object-contain" />
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
+        <div className="w-full max-w-sm rounded-2xl border border-violet-400/10 bg-app-surface/45 backdrop-blur-xl px-8 py-10 shadow-card text-center">
+          <img
+            src="/pinguslove-icon.png"
+            alt=""
+            className="h-20 w-20 mx-auto object-contain drop-shadow-[0_8px_24px_rgba(124,58,237,0.35)]"
+          />
           <h2 className="text-xl font-bold text-app-foreground mt-4">¡Cuenta creada!</h2>
           <p className="text-app-muted mt-2">Recibirás 100 puntos al empezar. Redirigiendo...</p>
         </div>
@@ -38,11 +42,15 @@ export function Register({ loadError }: { loadError?: string | null }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-app-bg">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <img src="/pinguslove-icon.png" alt="PingusLove" className="h-24 w-24 mx-auto object-contain" />
-          <h1 className="text-2xl font-bold text-app-foreground mt-3">PingusLove</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-sm rounded-2xl border border-violet-400/10 bg-app-surface/45 backdrop-blur-xl p-6 sm:p-8 shadow-card space-y-6">
+        <div className="text-center">
+          <img
+            src="/pinguslove-icon.png"
+            alt=""
+            className="h-24 w-24 mx-auto object-contain drop-shadow-[0_8px_24px_rgba(124,58,237,0.35)]"
+          />
+          <h1 className="text-2xl font-bold text-app-foreground mt-3 tracking-tight">PingusLove</h1>
           <p className="text-app-muted text-sm mt-1">Crea tu cuenta (100 pts de bienvenida)</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -71,15 +79,17 @@ export function Register({ loadError }: { loadError?: string | null }) {
             minLength={6}
             autoComplete="new-password"
           />
-          {loadError && <p className="text-sm text-amber-200 bg-amber-900/40 p-3 rounded-lg border border-amber-700/50">{loadError}</p>}
+          {loadError && (
+            <p className="text-sm text-amber-100 bg-amber-950/50 p-3 rounded-xl border border-amber-500/30">{loadError}</p>
+          )}
           {error && <p className="text-sm text-red-600">{error}</p>}
           <Button type="submit" className="w-full" size="lg">
             Registrarse
           </Button>
         </form>
-        <p className="mt-4 text-center text-sm text-app-muted">
+        <p className="text-center text-sm text-app-muted pt-2 border-t border-app-border/60">
           ¿Ya tienes cuenta?{' '}
-          <Link to="/login" className="font-medium text-app-muted hover:text-app-foreground underline">
+          <Link to="/login" className="font-semibold text-sky-400 hover:text-sky-300 underline underline-offset-2">
             Entra
           </Link>
         </p>

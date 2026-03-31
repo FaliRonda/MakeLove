@@ -2,7 +2,7 @@
 
 Todo el tema visual de la app se controla desde **un solo sitio**: `tailwind.config.js` → `theme.extend.colors.app`.
 
-La app usa actualmente un **tema oscuro** (fondo oscuro, texto claro, turquesa de acento).
+La app usa un **tema oscuro** alineado con la marca PingusLove: fondo violeta muy oscuro, superficies lilas, acento **cian hielo** (como el pingüino del logo) y tipografía **Plus Jakarta Sans**.
 
 ## Dónde cambiar el tema
 
@@ -31,7 +31,7 @@ La app usa actualmente un **tema oscuro** (fondo oscuro, texto claro, turquesa d
 
 1. Abre `tailwind.config.js`.
 2. Sustituye los valores hex del objeto `app` por los de tu paleta (por ejemplo otro morado/turquesa o azul/verde).
-3. Si quieres, actualiza `theme-color` en `index.html` con el color de acento.
+3. Actualiza `theme-color` en `index.html` y `manifest.json` con el mismo `app.bg` (barra del sistema / splash PWA).
 4. Guarda: no hace falta tocar ningún `.tsx`; las clases ya usan `app-*`.
 
 ## Colores que no son del tema

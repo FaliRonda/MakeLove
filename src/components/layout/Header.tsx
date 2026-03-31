@@ -13,7 +13,7 @@ export function Header() {
   const [logoError, setLogoError] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 bg-app-surface/95 backdrop-blur border-b border-app-border">
+    <header className="sticky top-0 z-50 border-b border-violet-500/[0.08] bg-app-surface/80 backdrop-blur-xl supports-[backdrop-filter]:bg-app-surface/70 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.35)]">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link
           to="/"

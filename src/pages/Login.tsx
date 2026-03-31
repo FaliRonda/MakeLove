@@ -101,11 +101,15 @@ export function Login({ loadError }: { loadError?: string | null }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-app-bg">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <img src="/pinguslove-icon.png" alt="PingusLove" className="h-24 w-24 mx-auto object-contain" />
-          <h1 className="text-2xl font-bold text-app-foreground mt-3">PingusLove</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-sm rounded-2xl border border-violet-400/10 bg-app-surface/45 backdrop-blur-xl p-6 sm:p-8 shadow-card space-y-6">
+        <div className="text-center">
+          <img
+            src="/pinguslove-icon.png"
+            alt=""
+            className="h-24 w-24 mx-auto object-contain drop-shadow-[0_8px_24px_rgba(124,58,237,0.35)]"
+          />
+          <h1 className="text-2xl font-bold text-app-foreground mt-3 tracking-tight">PingusLove</h1>
           <p className="text-app-muted text-sm mt-1">Inicia sesión en tu cuenta</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -126,7 +130,7 @@ export function Login({ loadError }: { loadError?: string | null }) {
             autoComplete="current-password"
           />
           {loadError && connectionTest !== 'ok' && (
-            <p className="text-sm text-amber-200 bg-amber-900/40 p-3 rounded-lg border border-amber-700/50">
+            <p className="text-sm text-amber-100 bg-amber-950/50 p-3 rounded-xl border border-amber-500/30">
               {loadError}
               <span className="block mt-2 text-xs">Haz clic en "Probar conexión" para verificar. Puedes intentar iniciar sesión de todos modos.</span>
             </p>
@@ -136,12 +140,12 @@ export function Login({ loadError }: { loadError?: string | null }) {
             {isSubmitting ? 'Entrando...' : 'Entrar'}
           </Button>
         </form>
-        <div className="mt-4 space-y-2">
+        <div className="space-y-2 pt-2 border-t border-app-border/60">
           <button
             type="button"
             onClick={testConnection}
             disabled={connectionTest === 'checking'}
-            className="text-sm text-app-muted hover:underline disabled:opacity-50"
+            className="text-sm text-sky-300/90 hover:text-sky-300 underline-offset-2 hover:underline disabled:opacity-50"
           >
             {connectionTest === 'idle' && 'Probar conexión con Supabase'}
             {connectionTest === 'checking' && 'Comprobando...'}
@@ -150,7 +154,7 @@ export function Login({ loadError }: { loadError?: string | null }) {
           </button>
           <p className="text-center text-sm text-app-muted">
             ¿No tienes cuenta?{' '}
-            <Link to="/register" className="font-medium text-app-muted hover:text-app-foreground underline">
+            <Link to="/register" className="font-semibold text-sky-400 hover:text-sky-300 underline underline-offset-2">
               Regístrate
             </Link>
           </p>

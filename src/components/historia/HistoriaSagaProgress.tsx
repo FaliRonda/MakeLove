@@ -125,7 +125,7 @@ export function HistoriaSagaProgress({
         >
           {pct > 0 && (
             <div
-              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-pink-500 via-rose-400 to-orange-400 transition-all duration-500"
+              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-teal-400 via-cyan-500 to-violet-600 transition-all duration-500"
               style={{ width: `${pct}%` }}
             />
           )}

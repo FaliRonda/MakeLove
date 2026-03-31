@@ -4,8 +4,8 @@
   "description": "App de pareja",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0d14",
-  "theme_color": "#0f0d14",
+  "background_color": "#0a0612",
+  "theme_color": "#0a0612",
   "icons": [
     {
       "src": "/pinguslove-icon.png",
