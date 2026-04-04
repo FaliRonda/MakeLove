@@ -2,6 +2,8 @@
   command = "npm run build"
   publish = "dist"
 
+# SPA fallback. Marcos SVG de tienda usan import ?url en el cliente (dist/assets/) para no depender de /public/shop/*.
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

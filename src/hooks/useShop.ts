@@ -28,6 +28,7 @@ function mapInventoryRow(row: UserInventoryApiRow): UserInventoryItem {
     item_type: (si?.item_type ?? 'badge') as ShopItemType,
     color_value: si?.color_value ?? null,
     badge_symbol: si?.badge_symbol ?? null,
+    frame_overlay_url: si?.frame_overlay_url ?? null,
     is_temporary: si?.is_temporary ?? false,
     is_couple_item: si?.is_couple_item ?? false,
   }
@@ -41,6 +42,17 @@ function throwRestError(res: Response, text: string): never {
     else if (j?.hint) msg = j.hint
   } catch { /* ignore */ }
   throw new Error(msg)
+}
+
+function normalizeShopItem(row: ShopItem): ShopItem {
+  const fou = row.frame_overlay_url
+  const frameClean =
+    fou == null || typeof fou !== 'string' ? null : fou.trim() === '' ? null : fou.trim()
+  return {
+    ...row,
+    frame_overlay_url: frameClean,
+    is_purchasable: row.is_purchasable !== false,
+  }
 }
 
 async function callRpc(h: RestHeaders, rpc: string, body: unknown): Promise<unknown> {
@@ -71,7 +83,8 @@ export function useShopItems() {
         )
         const text = await res.text()
         if (!res.ok) throwRestError(res, text)
-        return text ? (JSON.parse(text) as ShopItem[]) : []
+        const raw = text ? (JSON.parse(text) as ShopItem[]) : []
+        return raw.map(normalizeShopItem)
       }
       if (!supabase) return []
       const { data, error } = await supabase
@@ -80,7 +93,7 @@ export function useShopItems() {
         .eq('is_active', true)
         .order('sort_order')
       if (error) throw error
-      return (data ?? []) as ShopItem[]
+      return ((data ?? []) as ShopItem[]).map(normalizeShopItem)
     },
   })
 }
@@ -141,6 +154,7 @@ export function useBuyShopItem(userId: string | undefined) {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ['user_inventory', userId] }),
         qc.invalidateQueries({ queryKey: ['profile'] }),
+        qc.invalidateQueries({ queryKey: ['users'] }),
       ])
     },
   })

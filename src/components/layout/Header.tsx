@@ -55,7 +55,7 @@ export function Header() {
               </Link>
               <Link
                 to="/profile"
-                className="rounded-full transition-opacity hover:opacity-90"
+                className="rounded-full overflow-visible transition-opacity hover:opacity-90 ring-1 ring-app-border/35"
                 title="Ir a mi perfil"
                 aria-label="Ir a mi perfil"
               >
@@ -67,7 +67,7 @@ export function Header() {
                   }
                   name={profile.name}
                   size="sm"
-                  className="border border-app-border"
+                  frameOverlayUrl={profile.equipped_avatar_frame_url}
                 />
               </Link>
             </>

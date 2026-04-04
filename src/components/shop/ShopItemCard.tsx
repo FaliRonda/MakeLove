@@ -1,4 +1,6 @@
 import type { ShopItem, UserInventoryItem } from '@/types'
+import { resolveFrameOverlayUrl } from '@/lib/resolveFrameOverlayUrl'
+import { Avatar } from '@/components/Avatar'
 
 export function ShopItemCard({
   item,
@@ -12,6 +14,7 @@ export function ShopItemCard({
   const owned = !!inventoryItem
   const equipped = inventoryItem?.is_equipped ?? false
   const expired = inventoryItem?.expires_at ? new Date(inventoryItem.expires_at) < new Date() : false
+  const frameSrc = resolveFrameOverlayUrl(item.frame_overlay_url)
 
   return (
     <button
@@ -37,6 +40,20 @@ export function ShopItemCard({
             background: `radial-gradient(circle at 35% 35%, white 0%, ${item.color_value} 70%)`,
           }}
         />
+      ) : item.item_type === 'avatar_frame' ? (
+        frameSrc ? (
+          <Avatar
+            avatarUrl={null}
+            name="?"
+            size="md"
+            frameOverlayUrl={item.frame_overlay_url}
+            className="shrink-0"
+          />
+        ) : (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-muted/30 text-2xl select-none">
+            {item.badge_symbol ?? '🎭'}
+          </div>
+        )
       ) : (
         <span className="text-4xl select-none">{item.badge_symbol ?? '🏅'}</span>
       )}
@@ -45,6 +62,10 @@ export function ShopItemCard({
 
       {owned ? (
         <span className="text-xs text-green-400">{expired ? 'Expirado' : 'Tuyo'}</span>
+      ) : item.is_purchasable === false ? (
+        <span className="text-[10px] sm:text-xs font-semibold text-amber-400/95 leading-snug px-0.5">
+          Historia: Cuatro atardeceres en Roma
+        </span>
       ) : (
         <span className="text-xs font-bold text-app-accent tabular-nums">{item.cost_piedritas} 💎</span>
       )}

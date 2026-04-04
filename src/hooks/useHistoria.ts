@@ -10,6 +10,16 @@ export type HistoriaProgress = {
 export type HistoriaMissionRequirement = {
   metric_type: string
   required_amount: number
+  prior_mission_ids?: string[] | null
+}
+
+export type HistoriaMissionRewardShopItem = {
+  id: string
+  name: string
+  description?: string
+  item_type: string
+  badge_symbol: string | null
+  frame_overlay_url: string | null
 }
 
 export type HistoriaMission = {
@@ -19,6 +29,7 @@ export type HistoriaMission = {
   description: string
   target_type: 'individual' | 'couple'
   reward_piedritas: number
+  reward_shop_item?: HistoriaMissionRewardShopItem | null
   claimed: boolean
   /** Presente cuando el backend expone mission_requirements (migración 032+). */
   requirements?: HistoriaMissionRequirement[]
@@ -51,6 +62,36 @@ export type HistoriaState = {
 function parseHistoriaState(data: unknown): HistoriaState | null {
   if (!data) return null
   return data as HistoriaState
+}
+
+export type StoryMissionClaimResult = {
+  piedritas: number
+  shop_item: HistoriaMissionRewardShopItem | null
+}
+
+function parseClaimStoryMissionReward(raw: unknown): StoryMissionClaimResult {
+  if (raw != null && typeof raw === 'object' && 'piedritas' in raw) {
+    const o = raw as Record<string, unknown>
+    const si = o.shop_item
+    const shopItem =
+      si != null && typeof si === 'object'
+        ? ({
+            id: String((si as Record<string, unknown>).id ?? ''),
+            name: String((si as Record<string, unknown>).name ?? ''),
+            item_type: String((si as Record<string, unknown>).item_type ?? ''),
+            badge_symbol: ((si as Record<string, unknown>).badge_symbol as string | null) ?? null,
+            frame_overlay_url: ((si as Record<string, unknown>).frame_overlay_url as string | null) ?? null,
+          } as HistoriaMissionRewardShopItem)
+        : null
+    return {
+      piedritas: typeof o.piedritas === 'number' ? o.piedritas : 0,
+      shop_item: shopItem?.id ? shopItem : null,
+    }
+  }
+  if (typeof raw === 'number') {
+    return { piedritas: raw, shop_item: null }
+  }
+  return { piedritas: 0, shop_item: null }
 }
 
 export function useActiveHistoriaState(userId: string | undefined) {
@@ -115,8 +156,8 @@ export function useClaimHistoriaMissionReward(userId: string | undefined) {
         }
         const text = await res.text()
         const parsed = text ? JSON.parse(text) : null
-        if (Array.isArray(parsed)) return parsed[0] as number
-        return parsed as number
+        const payload = Array.isArray(parsed) ? parsed[0] : parsed
+        return parseClaimStoryMissionReward(payload)
       }
       if (!supabase) throw new Error('Supabase no configurado')
       const { data, error } = await supabase.rpc('claim_story_mission_reward', {
@@ -124,12 +165,13 @@ export function useClaimHistoriaMissionReward(userId: string | undefined) {
         p_mission_id: missionId,
       })
       if (error) throw error
-      return data as number
+      return parseClaimStoryMissionReward(data)
     },
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['historia_state', userId] }),
         queryClient.invalidateQueries({ queryKey: ['profile'] }),
+        queryClient.invalidateQueries({ queryKey: ['user_inventory', userId] }),
       ])
     },
   })

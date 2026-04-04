@@ -1,9 +1,17 @@
 import { useMemo, useState } from 'react'
-import { useActiveHistoriaState, useClaimHistoriaMissionReward } from '@/hooks/useHistoria'
+import {
+  useActiveHistoriaState,
+  useClaimHistoriaMissionReward,
+  type HistoriaMissionRewardShopItem,
+} from '@/hooks/useHistoria'
+import { useUserInventory } from '@/hooks/useShop'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { formatDate } from '@/lib/utils'
+import { rewardShopItemToShopItem } from '@/lib/rewardShopItemToShopItem'
 import { HistoriaSagaProgress } from '@/components/historia/HistoriaSagaProgress'
+import { MissionRewardShopPreview } from '@/components/historia/MissionRewardShopPreview'
+import { ShopItemDetailModal } from '@/components/shop/ShopItemDetailModal'
 import { missionObjectiveLine, type MissionMetricType } from '@/lib/historiaObjective'
 
 function todayMadridISODate(): string {
@@ -52,7 +60,14 @@ export function Historia() {
   const userId = profile?.id
   const { data: historiaState, isLoading, error } = useActiveHistoriaState(userId)
   const claimMutation = useClaimHistoriaMissionReward(userId)
-  const [claimCelebration, setClaimCelebration] = useState<{ amount: number } | null>(null)
+  const [claimCelebration, setClaimCelebration] = useState<{
+    piedritas: number
+    shopItem: HistoriaMissionRewardShopItem | null
+  } | null>(null)
+  const [rewardDetailReward, setRewardDetailReward] = useState<HistoriaMissionRewardShopItem | null>(null)
+
+  const { data: inventory = [] } = useUserInventory(userId)
+  const inventoryByItemId = useMemo(() => new Map(inventory.map((i) => [i.item_id, i])), [inventory])
 
   const todayISO = useMemo(() => todayMadridISODate(), [])
 
@@ -150,9 +165,19 @@ export function Historia() {
                             <span className="text-[11px] font-semibold uppercase tracking-wide text-app-muted">
                               Misión {mission.order_number}
                             </span>
-                            <span className="text-xs tabular-nums font-semibold text-app-accent">
-                              +{mission.reward_piedritas} 💎
-                            </span>
+                            {mission.reward_shop_item ? (
+                              <MissionRewardShopPreview
+                                reward={mission.reward_shop_item}
+                                onOpenDetail={setRewardDetailReward}
+                                extraPiedritas={
+                                  mission.reward_piedritas > 0 ? mission.reward_piedritas : undefined
+                                }
+                              />
+                            ) : (
+                              <span className="text-xs tabular-nums font-semibold text-app-accent">
+                                +{mission.reward_piedritas} 💎
+                              </span>
+                            )}
                           </div>
                           <p className="font-medium text-app-foreground mt-1">{mission.title}</p>
                           {mission.description ? (
@@ -170,7 +195,10 @@ export function Historia() {
                                     {missionObjectiveLine(
                                       req.metric_type as MissionMetricType,
                                       req.required_amount,
-                                      mission.target_type
+                                      mission.target_type,
+                                      Array.isArray(req.prior_mission_ids) && req.prior_mission_ids.length > 0
+                                        ? req.prior_mission_ids.length
+                                        : undefined
                                     )}
                                   </span>
                                 </p>
@@ -199,15 +227,14 @@ export function Historia() {
                             onClick={() => {
                               void claimMutation
                                 .mutateAsync(mission.id)
-                                .then(async (rewardAmount) => {
-                                  const amount =
-                                    typeof rewardAmount === 'number' && !Number.isNaN(rewardAmount)
-                                      ? rewardAmount
-                                      : mission.reward_piedritas
+                                .then(async (result) => {
                                   try {
                                     await refetchProfile()
                                   } finally {
-                                    setClaimCelebration({ amount })
+                                    setClaimCelebration({
+                                      piedritas: result.piedritas,
+                                      shopItem: result.shop_item,
+                                    })
                                   }
                                 })
                                 .catch(() => {
@@ -236,6 +263,18 @@ export function Historia() {
         story && <p className="text-sm text-app-muted">Aún no hay capítulos/misiones.</p>
       )}
 
+      {rewardDetailReward && userId && (
+        <ShopItemDetailModal
+          item={rewardShopItemToShopItem(rewardDetailReward)}
+          inventoryItem={inventoryByItemId.get(rewardDetailReward.id)}
+          userId={userId}
+          balance={profile?.piedritas_balance ?? 0}
+          onClose={() => setRewardDetailReward(null)}
+          refetchProfile={refetchProfile}
+          onPurchaseSuccess={() => setRewardDetailReward(null)}
+        />
+      )}
+
       {claimCelebration && (
         <div
           className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 p-4 sm:items-center"
@@ -262,31 +301,58 @@ export function Historia() {
               }
             `}</style>
             <div className="flex flex-col items-center text-center">
-              <div
-                className="text-6xl leading-none select-none"
-                style={{ animation: 'historiaPiedritasShine 2s ease-in-out infinite' }}
-                aria-hidden
-              >
-                💎
-              </div>
+              {claimCelebration.shopItem ? (
+                <div
+                  className="text-6xl leading-none select-none"
+                  style={{ animation: 'historiaPiedritasShine 2s ease-in-out infinite' }}
+                  aria-hidden
+                >
+                  {claimCelebration.shopItem.badge_symbol ?? '🏅'}
+                </div>
+              ) : (
+                <div
+                  className="text-6xl leading-none select-none"
+                  style={{ animation: 'historiaPiedritasShine 2s ease-in-out infinite' }}
+                  aria-hidden
+                >
+                  💎
+                </div>
+              )}
               <h3 id="piedritas-claim-title" className="mt-4 text-lg font-semibold text-app-foreground">
                 ¡Enhorabuena!
               </h3>
-              <p className="mt-2 text-sm text-app-muted">
-                Has conseguido{' '}
-                <span className="font-semibold tabular-nums text-app-accent">
-                  +{claimCelebration.amount}{' '}
-                  {claimCelebration.amount === 1 ? 'piedrita' : 'piedritas'}
-                </span>
-                .
-              </p>
-              {claimCelebration.amount === 0 ? (
+              {claimCelebration.shopItem ? (
+                <p className="mt-2 text-sm text-app-muted">
+                  Has reclamado{' '}
+                  <span className="font-semibold text-app-foreground">{claimCelebration.shopItem.name}</span>
+                  . Ya está en tu inventario para equipar cuando quieras.
+                </p>
+              ) : (
+                <p className="mt-2 text-sm text-app-muted">
+                  Has conseguido{' '}
+                  <span className="font-semibold tabular-nums text-app-accent">
+                    +{claimCelebration.piedritas}{' '}
+                    {claimCelebration.piedritas === 1 ? 'piedrita' : 'piedritas'}
+                  </span>
+                  .
+                </p>
+              )}
+              {!claimCelebration.shopItem && claimCelebration.piedritas === 0 ? (
                 <p className="mt-1 text-xs text-app-muted">
                   Esta misión no suma piedritas a tu saldo (recompensa 0).
                 </p>
-              ) : (
-                <p className="mt-1 text-xs text-app-muted">Ya están en tu saldo; úsalas en la tienda cuando quieras.</p>
-              )}
+              ) : null}
+              {!claimCelebration.shopItem && claimCelebration.piedritas > 0 ? (
+                <p className="mt-1 text-xs text-app-muted">
+                  Ya están en tu saldo; úsalas en la tienda cuando quieras.
+                </p>
+              ) : null}
+              {claimCelebration.shopItem && claimCelebration.piedritas > 0 ? (
+                <p className="mt-1 text-xs text-app-muted tabular-nums">
+                  Además: +{claimCelebration.piedritas}{' '}
+                  {claimCelebration.piedritas === 1 ? 'piedrita' : 'piedritas'}.
+                </p>
+              ) : null}
               <Button className="mt-6 w-full" type="button" onClick={() => setClaimCelebration(null)}>
                 Aceptar
               </Button>

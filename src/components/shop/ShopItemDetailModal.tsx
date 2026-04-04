@@ -1,10 +1,24 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useBuyShopItem, useEquipShopItem, useUnequipShopItemType } from '@/hooks/useShop'
 import { Button } from '@/components/ui/Button'
+import { Avatar } from '@/components/Avatar'
 import { formatDate } from '@/lib/utils'
+import { resolveFrameOverlayUrl } from '@/lib/resolveFrameOverlayUrl'
 import type { ShopItem, UserInventoryItem } from '@/types'
 
-export function ItemAnimation({ item }: { item: ShopItem }) {
+/** Foto + nombre para previsualizar un marco como se verá en el perfil. */
+export type FramePreviewUser = {
+  avatarUrl: string | null
+  name: string
+}
+
+export function ItemAnimation({
+  item,
+  framePreviewUser,
+}: {
+  item: ShopItem
+  framePreviewUser?: FramePreviewUser | null
+}) {
   if (item.item_type === 'name_color' && item.color_value) {
     return (
       <div className="flex flex-col items-center gap-4 py-6">
@@ -34,6 +48,39 @@ export function ItemAnimation({ item }: { item: ShopItem }) {
           }}
         >
           Tu nombre aquí
+        </p>
+      </div>
+    )
+  }
+
+  if (item.item_type === 'avatar_frame') {
+    const frameSrc = resolveFrameOverlayUrl(item.frame_overlay_url)
+    return (
+      <div className="flex flex-col items-center gap-4 py-6">
+        <style>{`
+          @keyframes maskFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-6px) scale(1.03); }
+          }
+        `}</style>
+        <div
+          className="flex items-center justify-center overflow-visible rounded-3xl bg-gradient-to-br from-amber-900/40 to-app-bg border border-amber-700/30 px-4 py-5"
+          style={{ animation: 'maskFloat 3s ease-in-out infinite' }}
+        >
+          {frameSrc ? (
+            <Avatar
+              avatarUrl={framePreviewUser?.avatarUrl ?? null}
+              name={framePreviewUser?.name ?? '?'}
+              size="xl"
+              frameOverlayUrl={item.frame_overlay_url}
+              className="shrink-0 drop-shadow-xl"
+            />
+          ) : (
+            <span className="text-6xl select-none">{item.badge_symbol ?? '🎭'}</span>
+          )}
+        </div>
+        <p className="text-sm text-app-muted text-center px-2">
+          Marco sobre tu foto: estilo máscara veneciana con adornos que rodean el círculo del avatar.
         </p>
       </div>
     )
@@ -106,6 +153,8 @@ type Props = {
   inventoryItem?: UserInventoryItem
   userId: string
   balance: number
+  /** Avatar actual para previsualizar marcos en el modal. */
+  framePreviewUser?: FramePreviewUser | null
   onClose: () => void
   refetchProfile: () => void | Promise<void>
   onPurchaseSuccess: (purchased: ShopItem) => void
@@ -116,6 +165,7 @@ export function ShopItemDetailModal({
   inventoryItem,
   userId,
   balance,
+  framePreviewUser,
   onClose,
   refetchProfile,
   onPurchaseSuccess,
@@ -128,8 +178,12 @@ export function ShopItemDetailModal({
   const owned = !!inventoryItem
   const equipped = inventoryItem?.is_equipped ?? false
   const expired = inventoryItem?.expires_at ? new Date(inventoryItem.expires_at) < new Date() : false
-  const canEquip = owned && !expired && (item.item_type === 'name_color' || item.item_type === 'badge')
-  const canBuy = !owned && balance >= item.cost_piedritas
+  const canEquip =
+    owned &&
+    !expired &&
+    (item.item_type === 'name_color' || item.item_type === 'badge' || item.item_type === 'avatar_frame')
+  const purchasable = item.is_purchasable !== false
+  const canBuy = !owned && purchasable && balance >= item.cost_piedritas
 
   const isPending = buyMutation.isPending || equipMutation.isPending || unequipMutation.isPending
   const mutationError =
@@ -171,7 +225,7 @@ export function ShopItemDetailModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-3xl border border-app-border bg-app-surface shadow-2xl overflow-hidden"
+        className="w-full max-w-sm rounded-3xl border border-app-border bg-app-surface shadow-2xl overflow-visible"
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -180,10 +234,12 @@ export function ShopItemDetailModal({
               ? 'bg-gradient-to-br from-app-bg to-app-surface'
               : item.item_type === 'badge'
                 ? 'bg-gradient-to-br from-violet-950/40 to-app-surface'
-                : 'bg-gradient-to-br from-amber-950/40 to-app-surface'
+                : item.item_type === 'avatar_frame'
+                  ? 'bg-gradient-to-br from-amber-950/35 via-app-surface to-rose-950/25'
+                  : 'bg-gradient-to-br from-amber-950/40 to-app-surface'
           }`}
         >
-          <ItemAnimation item={item} />
+          <ItemAnimation item={item} framePreviewUser={framePreviewUser} />
         </div>
 
         <div className="px-6 pb-6 space-y-4">
@@ -217,8 +273,8 @@ export function ShopItemDetailModal({
             </p>
           )}
 
-          <div className="flex gap-2">
-            {!owned && (
+          <div className="flex flex-wrap gap-2">
+            {!owned && purchasable && (
               <Button
                 className="flex-1"
                 onClick={() => void handleBuy()}
@@ -227,6 +283,21 @@ export function ShopItemDetailModal({
               >
                 {canBuy ? `Comprar · ${item.cost_piedritas} 💎` : `${item.cost_piedritas} 💎 (sin saldo)`}
               </Button>
+            )}
+            {!owned && !purchasable && (
+              <p className="min-w-[12rem] flex-1 text-xs text-app-muted leading-snug self-center">
+                {item.item_type === 'avatar_frame' ? (
+                  <>
+                    Premio por completar la historia{' '}
+                    <span className="text-app-foreground font-medium">Cuatro atardeceres en Roma</span>
+                    : terminá las misiones del último día. No se compra con Piedritas.
+                  </>
+                ) : (
+                  <>
+                    Este ítem no está a la venta. Lo conseguís completando la historia u otros eventos.
+                  </>
+                )}
+              </p>
             )}
             {canEquip && (
               <Button

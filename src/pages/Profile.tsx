@@ -91,16 +91,6 @@ function mergeAndSortHistory(base: HistoryItem[], extra: HistoryItem[]): History
   )
 }
 
-function getInitials(name: string): string {
-  return name
-    .trim()
-    .split(/\s+/)
-    .map((s) => s[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
-
 export function Profile() {
   const { userId: paramUserId } = useParams()
   const { profile, signOut, refetchProfile, user, isAdmin } = useAuth()
@@ -253,13 +243,14 @@ export function Profile() {
           <button
             type="button"
             onClick={() => setPhotoLightbox(true)}
-            className="focus:outline-none focus:ring-2 focus:ring-app-accent rounded-full"
+            className="focus:outline-none focus:ring-2 focus:ring-app-accent rounded-full overflow-visible"
             aria-label="Ver foto en grande"
           >
             <Avatar
               avatarUrl={avatarUrl}
               name={displayUser.name}
               size="xl"
+              frameOverlayUrl={displayUser.equipped_avatar_frame_url}
               className="shrink-0"
             />
           </button>
@@ -586,21 +577,18 @@ export function Profile() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={displayUser.name}
-              className="max-w-full max-h-[85vh] w-auto h-auto object-contain rounded-full"
-              onClick={(e) => e.stopPropagation()}
+          <div
+            className="scale-[2.15] sm:scale-[2.75] origin-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Avatar
+              avatarUrl={avatarUrl}
+              name={displayUser.name}
+              size="xl"
+              frameOverlayUrl={displayUser.equipped_avatar_frame_url}
+              className="ring-2 ring-white/30 shadow-2xl"
             />
-          ) : (
-            <div
-              className="w-48 h-48 rounded-full bg-app-bg border border-app-border flex items-center justify-center text-5xl font-bold text-app-muted"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {getInitials(displayUser.name)}
-            </div>
-          )}
+          </div>
         </div>
       )}
 

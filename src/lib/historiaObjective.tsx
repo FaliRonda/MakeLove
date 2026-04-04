@@ -6,6 +6,7 @@ export type MissionMetricType =
   | 'requests_received_confirmed'
   | 'points_gained'
   | 'levels_gained'
+  | 'prior_missions_complete'
 
 function nStrong(n: number): ReactNode {
   return <span className="font-semibold text-app-accent tabular-nums">{n}</span>
@@ -15,9 +16,11 @@ function nStrong(n: number): ReactNode {
 export function missionObjectiveLine(
   metricType: MissionMetricType,
   amount: number,
-  targetType: 'individual' | 'couple'
+  targetType: 'individual' | 'couple',
+  priorPoolSize?: number
 ): ReactNode {
   const n = nStrong(amount)
+  const pool = priorPoolSize ?? amount
 
   switch (metricType) {
     case 'actions_done':
@@ -68,6 +71,21 @@ export function missionObjectiveLine(
       return <>Gana {n} punt{amount === 1 ? 'o' : 'os'} durante el periodo del capítulo</>
     case 'levels_gained':
       return <>Sube {n} nivel{amount === 1 ? '' : 'es'} durante el periodo del capítulo</>
+    case 'prior_missions_complete':
+      if (targetType === 'couple') {
+        return (
+          <>
+            Completad al menos {n} de las {pool} misiones previas de esta historia (cada una con su objetivo
+            cumplido)
+          </>
+        )
+      }
+      return (
+        <>
+          Completa al menos {n} de las {pool} misiones previas de esta historia (cada una con su objetivo
+          cumplido)
+        </>
+      )
     default:
       return (
         <>

@@ -38,6 +38,7 @@ const METRIC_LABELS: Record<MissionMetricType, string> = {
   requests_received_confirmed: 'Solicitudes recibidas y confirmadas',
   points_gained: 'Puntos ganados',
   levels_gained: 'Niveles subidos',
+  prior_missions_complete: 'Misiones previas completadas (pool + cantidad)',
 }
 
 // ---- Forms ----

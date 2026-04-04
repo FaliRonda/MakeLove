@@ -11,6 +11,7 @@ export type MissionMetricType =
   | 'requests_received_confirmed'
   | 'points_gained'
   | 'levels_gained'
+  | 'prior_missions_complete'
 
 export interface Story {
   id: string
@@ -37,6 +38,7 @@ export interface MissionRequirement {
   mission_id: string
   metric_type: MissionMetricType
   required_amount: number
+  prior_mission_ids?: string[] | null
 }
 
 export interface Mission {
@@ -47,6 +49,7 @@ export interface Mission {
   description: string
   target_type: MissionTargetType
   reward_piedritas: number
+  reward_shop_item_id?: string | null
   created_at: string
   requirement?: MissionRequirement | null
 }

@@ -87,6 +87,7 @@ export function Dashboard() {
                       }
                       name={user.name}
                       size={isTop ? 'md' : 'sm'}
+                      frameOverlayUrl={user.equipped_avatar_frame_url}
                       className={isTop ? 'shadow-lg shrink-0' : 'shrink-0'}
                     />
                     <span

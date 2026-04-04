@@ -15,6 +15,8 @@ export interface User {
   estado: string | null
   equipped_name_color?: string | null
   equipped_badge?: string | null
+  /** URL del overlay de marco (tienda avatar_frame). */
+  equipped_avatar_frame_url?: string | null
   created_at: string
   updated_at: string
 }
@@ -112,7 +114,7 @@ export interface BalanceTransaction {
   created_at: string
 }
 
-export type ShopItemType = 'name_color' | 'badge' | 'medal'
+export type ShopItemType = 'name_color' | 'badge' | 'medal' | 'avatar_frame'
 
 export interface ShopItem {
   id: string
@@ -121,10 +123,12 @@ export interface ShopItem {
   item_type: ShopItemType
   color_value: string | null
   badge_symbol: string | null
+  frame_overlay_url: string | null
   cost_piedritas: number
   is_temporary: boolean
   available_until: string | null
   is_couple_item: boolean
+  is_purchasable: boolean
   is_active: boolean
   sort_order: number
   created_at: string
@@ -142,6 +146,7 @@ export interface UserInventoryItem {
   item_type: ShopItemType
   color_value: string | null
   badge_symbol: string | null
+  frame_overlay_url: string | null
   is_temporary: boolean
   is_couple_item: boolean
 }
