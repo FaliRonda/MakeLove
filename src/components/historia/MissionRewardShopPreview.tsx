@@ -1,4 +1,5 @@
 import type { HistoriaMissionRewardShopItem } from '@/hooks/useHistoria'
+import type { FramePreviewUser } from '@/components/shop/ShopItemDetailModal'
 import { resolveFrameOverlayUrl } from '@/lib/resolveFrameOverlayUrl'
 import { Avatar } from '@/components/Avatar'
 
@@ -6,10 +7,17 @@ type Props = {
   reward: HistoriaMissionRewardShopItem
   onOpenDetail: (reward: HistoriaMissionRewardShopItem) => void
   extraPiedritas?: number
+  /** Misma preview que en tienda: marco sobre tu foto. */
+  framePreviewUser?: FramePreviewUser | null
 }
 
 /** Texto + miniatura a la derecha; todo el bloque abre el detalle del ítem de tienda. */
-export function MissionRewardShopPreview({ reward, onOpenDetail, extraPiedritas }: Props) {
+export function MissionRewardShopPreview({
+  reward,
+  onOpenDetail,
+  extraPiedritas,
+  framePreviewUser,
+}: Props) {
   const label = (
     <>
       Recompensa:{' '}
@@ -29,19 +37,25 @@ export function MissionRewardShopPreview({ reward, onOpenDetail, extraPiedritas 
       className="group flex max-w-[min(100%,18rem)] items-center gap-2 rounded-xl border border-transparent px-1.5 py-1 text-left transition hover:border-amber-500/35 hover:bg-amber-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70"
     >
       <span className="min-w-0 flex-1 text-xs font-semibold leading-snug text-amber-400/95">{label}</span>
-      <MissionRewardThumb reward={reward} />
+      <MissionRewardThumb reward={reward} framePreviewUser={framePreviewUser} />
     </button>
   )
 }
 
-function MissionRewardThumb({ reward }: { reward: HistoriaMissionRewardShopItem }) {
+function MissionRewardThumb({
+  reward,
+  framePreviewUser,
+}: {
+  reward: HistoriaMissionRewardShopItem
+  framePreviewUser?: FramePreviewUser | null
+}) {
   const frameSrc = resolveFrameOverlayUrl(reward.frame_overlay_url)
   if (reward.item_type === 'avatar_frame' && frameSrc) {
     return (
-      <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-visible rounded-xl border border-app-border bg-app-muted/20 group-hover:border-amber-500/45">
+      <span className="inline-flex shrink-0 items-center justify-center overflow-visible rounded-xl border border-app-border bg-app-muted/20 px-2 py-2 group-hover:border-amber-500/45">
         <Avatar
-          avatarUrl={null}
-          name="?"
+          avatarUrl={framePreviewUser?.avatarUrl ?? null}
+          name={framePreviewUser?.name ?? '?'}
           size="md"
           frameOverlayUrl={reward.frame_overlay_url}
           className="shrink-0"

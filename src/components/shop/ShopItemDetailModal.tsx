@@ -19,6 +19,10 @@ export function ItemAnimation({
   item: ShopItem
   framePreviewUser?: FramePreviewUser | null
 }) {
+  const previewName = framePreviewUser?.name?.trim() || ''
+  const nameColorLabel = previewName !== '' ? previewName : 'Tu nombre aquí'
+  const nameWithFallback = previewName !== '' ? previewName : 'Tu nombre'
+
   if (item.item_type === 'name_color' && item.color_value) {
     return (
       <div className="flex flex-col items-center gap-4 py-6">
@@ -41,13 +45,14 @@ export function ItemAnimation({
           }}
         />
         <p
-          className="text-2xl font-bold tracking-wide"
+          className="text-2xl font-bold tracking-wide text-center max-w-[18rem] truncate px-1"
           style={{
             color: item.color_value,
             animation: 'colorPulse 2s ease-in-out infinite',
           }}
+          title={nameColorLabel}
         >
-          Tu nombre aquí
+          {nameColorLabel}
         </p>
       </div>
     )
@@ -56,15 +61,15 @@ export function ItemAnimation({
   if (item.item_type === 'avatar_frame') {
     const frameSrc = resolveFrameOverlayUrl(item.frame_overlay_url)
     return (
-      <div className="flex flex-col items-center gap-4 py-6">
+      <div className="flex flex-col items-center gap-4 pb-6 pt-1">
         <style>{`
           @keyframes maskFloat {
             0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-6px) scale(1.03); }
+            50% { transform: translateY(-4px) scale(1.02); }
           }
         `}</style>
         <div
-          className="flex items-center justify-center overflow-visible rounded-3xl bg-gradient-to-br from-amber-900/40 to-app-bg border border-amber-700/30 px-4 py-5"
+          className="flex w-full max-w-[16.5rem] items-center justify-center overflow-visible rounded-3xl bg-gradient-to-br from-amber-950/55 via-amber-900/45 to-app-bg border border-amber-700/35 px-3 pt-8 pb-6 sm:px-4"
           style={{ animation: 'maskFloat 3s ease-in-out infinite' }}
         >
           {frameSrc ? (
@@ -119,7 +124,9 @@ export function ItemAnimation({
         </div>
         <p className="text-base text-app-muted">
           Aparece junto a tu nombre:{' '}
-          <span className="text-app-foreground font-semibold">Tu nombre {item.badge_symbol}</span>
+          <span className="text-app-foreground font-semibold">
+            {nameWithFallback} {item.badge_symbol}
+          </span>
         </p>
       </div>
     )
@@ -225,13 +232,13 @@ export function ShopItemDetailModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-3xl border border-app-border bg-app-surface shadow-2xl overflow-visible"
+        className="w-full max-w-sm rounded-3xl border border-app-border bg-app-surface shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className={`px-6 pt-6 pb-2 ${
+          className={`px-6 pt-6 pb-2 rounded-t-3xl ${
             item.item_type === 'name_color'
-              ? 'bg-gradient-to-br from-app-bg to-app-surface'
+              ? 'bg-app-surface'
               : item.item_type === 'badge'
                 ? 'bg-gradient-to-br from-violet-950/40 to-app-surface'
                 : item.item_type === 'avatar_frame'

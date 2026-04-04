@@ -37,7 +37,7 @@ function PurchaseSuccessModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-center">
-          <div className="rounded-2xl border border-app-border/50 bg-app-bg/80 px-4 -mx-2 w-full">
+          <div className="rounded-2xl border border-app-border/50 bg-app-bg/80 px-4 -mx-2 w-full overflow-hidden">
             <ItemAnimation item={item} framePreviewUser={framePreviewUser} />
           </div>
         </div>

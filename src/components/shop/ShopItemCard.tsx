@@ -42,13 +42,15 @@ export function ShopItemCard({
         />
       ) : item.item_type === 'avatar_frame' ? (
         frameSrc ? (
-          <Avatar
-            avatarUrl={null}
-            name="?"
-            size="md"
-            frameOverlayUrl={item.frame_overlay_url}
-            className="shrink-0"
-          />
+          <span className="inline-flex rounded-xl bg-app-muted/25 px-2 py-2 ring-1 ring-app-border/45">
+            <Avatar
+              avatarUrl={null}
+              name="?"
+              size="md"
+              frameOverlayUrl={item.frame_overlay_url}
+              className="shrink-0"
+            />
+          </span>
         ) : (
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-muted/30 text-2xl select-none">
             {item.badge_symbol ?? '🎭'}

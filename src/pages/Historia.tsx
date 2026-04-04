@@ -11,7 +11,7 @@ import { formatDate } from '@/lib/utils'
 import { rewardShopItemToShopItem } from '@/lib/rewardShopItemToShopItem'
 import { HistoriaSagaProgress } from '@/components/historia/HistoriaSagaProgress'
 import { MissionRewardShopPreview } from '@/components/historia/MissionRewardShopPreview'
-import { ShopItemDetailModal } from '@/components/shop/ShopItemDetailModal'
+import { ShopItemDetailModal, type FramePreviewUser } from '@/components/shop/ShopItemDetailModal'
 import { missionObjectiveLine, type MissionMetricType } from '@/lib/historiaObjective'
 
 function todayMadridISODate(): string {
@@ -70,6 +70,15 @@ export function Historia() {
   const inventoryByItemId = useMemo(() => new Map(inventory.map((i) => [i.item_id, i])), [inventory])
 
   const todayISO = useMemo(() => todayMadridISODate(), [])
+
+  const framePreviewUser: FramePreviewUser | undefined = profile
+    ? {
+        avatarUrl: profile.avatar_url
+          ? `${profile.avatar_url}?t=${encodeURIComponent(profile.updated_at ?? '')}`
+          : null,
+        name: profile.name?.trim() || 'Tú',
+      }
+    : undefined
 
   if (isLoading) {
     return (
@@ -172,6 +181,7 @@ export function Historia() {
                                 extraPiedritas={
                                   mission.reward_piedritas > 0 ? mission.reward_piedritas : undefined
                                 }
+                                framePreviewUser={framePreviewUser}
                               />
                             ) : (
                               <span className="text-xs tabular-nums font-semibold text-app-accent">
@@ -269,6 +279,7 @@ export function Historia() {
           inventoryItem={inventoryByItemId.get(rewardDetailReward.id)}
           userId={userId}
           balance={profile?.piedritas_balance ?? 0}
+          framePreviewUser={framePreviewUser}
           onClose={() => setRewardDetailReward(null)}
           refetchProfile={refetchProfile}
           onPurchaseSuccess={() => setRewardDetailReward(null)}
