@@ -1,4 +1,5 @@
 import type { ShopItem, UserInventoryItem } from '@/types'
+import type { FramePreviewUser } from '@/components/shop/ShopItemDetailModal'
 import { resolveFrameOverlayUrl } from '@/lib/resolveFrameOverlayUrl'
 import { Avatar } from '@/components/Avatar'
 
@@ -6,10 +7,13 @@ export function ShopItemCard({
   item,
   inventoryItem,
   onClick,
+  framePreviewUser,
 }: {
   item: ShopItem
   inventoryItem?: UserInventoryItem
   onClick: () => void
+  /** Misma preview que en el modal: marco sobre tu foto. */
+  framePreviewUser?: FramePreviewUser | null
 }) {
   const owned = !!inventoryItem
   const equipped = inventoryItem?.is_equipped ?? false
@@ -44,8 +48,8 @@ export function ShopItemCard({
         frameSrc ? (
           <span className="inline-flex rounded-xl bg-app-muted/25 px-2 py-2 ring-1 ring-app-border/45">
             <Avatar
-              avatarUrl={null}
-              name="?"
+              avatarUrl={framePreviewUser?.avatarUrl ?? null}
+              name={framePreviewUser?.name ?? '?'}
               size="md"
               frameOverlayUrl={item.frame_overlay_url}
               className="shrink-0"

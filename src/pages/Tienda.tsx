@@ -134,6 +134,7 @@ export function Tienda() {
               key={item.id}
               item={item}
               inventoryItem={inventoryMap.get(item.id)}
+              framePreviewUser={framePreviewUser}
               onClick={() => setSelectedItem(item)}
             />
           ))}
@@ -152,6 +153,7 @@ export function Tienda() {
                 key={item.id}
                 item={item}
                 inventoryItem={inventoryMap.get(item.id)}
+                framePreviewUser={framePreviewUser}
                 onClick={() => setSelectedItem(item)}
               />
             ))}
@@ -175,8 +177,8 @@ export function Tienda() {
                   />
                 ) : i.item_type === 'avatar_frame' && equippedFrameSrc ? (
                   <Avatar
-                    avatarUrl={null}
-                    name="?"
+                    avatarUrl={framePreviewUser?.avatarUrl ?? null}
+                    name={framePreviewUser?.name ?? '?'}
                     size="sm"
                     frameOverlayUrl={i.frame_overlay_url}
                     className="shrink-0 ring-1 ring-app-border"
