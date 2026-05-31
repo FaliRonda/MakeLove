@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useUserInventory } from '@/hooks/useShop'
 import { ShopTypeTabs } from '@/components/shop/ShopTypeTabs'
 import { ShopItemCard } from '@/components/shop/ShopItemCard'
-import { ShopItemDetailModal } from '@/components/shop/ShopItemDetailModal'
+import { ShopItemDetailModal, type FramePreviewUser } from '@/components/shop/ShopItemDetailModal'
 import { userInventoryToShopItem } from '@/components/shop/userInventoryToShopItem'
 import { Button } from '@/components/ui/Button'
 import type { ShopItem, ShopItemType, UserInventoryItem } from '@/types'
@@ -35,6 +35,15 @@ export function ProfileInventorySection({ userId, refetchProfile }: Props) {
   const inTab = useMemo(() => soloItems.filter((i) => i.item_type === activeTab), [soloItems, activeTab])
 
   const inventoryByItemId = useMemo(() => new Map(sorted.map((i) => [i.item_id, i])), [sorted])
+
+  const framePreviewUser: FramePreviewUser | undefined = profile
+    ? {
+        avatarUrl: profile.avatar_url
+          ? `${profile.avatar_url}?t=${encodeURIComponent(profile.updated_at ?? '')}`
+          : null,
+        name: profile.name?.trim() || 'Tú',
+      }
+    : undefined
 
   const openDetail = (row: UserInventoryItem) => {
     setSelectedItem(userInventoryToShopItem(row))
@@ -133,6 +142,7 @@ export function ProfileInventorySection({ userId, refetchProfile }: Props) {
                   key={row.id}
                   item={shopItem}
                   inventoryItem={row}
+                  framePreviewUser={framePreviewUser}
                   onClick={() => openDetail(row)}
                 />
               )
@@ -147,6 +157,7 @@ export function ProfileInventorySection({ userId, refetchProfile }: Props) {
           inventoryItem={inventoryByItemId.get(selectedItem.id)}
           userId={userId}
           balance={balance}
+          framePreviewUser={framePreviewUser}
           onClose={() => setSelectedItem(null)}
           refetchProfile={refetchProfile}
           onPurchaseSuccess={() => setSelectedItem(null)}
