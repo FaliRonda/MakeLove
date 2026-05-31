@@ -79,7 +79,6 @@ export function Actions() {
           name: form.name.trim(),
           description: '',
           points_value: form.points_value,
-          reward_percentage: null,
           is_active: true,
         }),
       })

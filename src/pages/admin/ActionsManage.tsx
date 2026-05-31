@@ -12,7 +12,6 @@ export function ActionsManage() {
     name: '',
     description: '',
     points_value: 10,
-    reward_percentage: '' as string | number,
     is_active: true,
   })
 
@@ -26,7 +25,6 @@ export function ActionsManage() {
       name: '',
       description: '',
       points_value: 10,
-      reward_percentage: '',
       is_active: true,
     })
     setEditing(null)
@@ -39,7 +37,6 @@ export function ActionsManage() {
         name: form.name,
         description: form.description,
         points_value: form.points_value,
-        reward_percentage: form.reward_percentage === '' ? null : Number(form.reward_percentage),
         is_active: form.is_active,
       })
       resetForm()
@@ -55,7 +52,6 @@ export function ActionsManage() {
         name: form.name,
         description: form.description,
         points_value: form.points_value,
-        reward_percentage: form.reward_percentage === '' ? null : Number(form.reward_percentage),
         is_active: form.is_active,
       })
       resetForm()
@@ -80,7 +76,6 @@ export function ActionsManage() {
         name: a.name,
         description: a.description,
         points_value: a.points_value,
-        reward_percentage: a.reward_percentage ?? '',
         is_active: a.is_active,
       })
       setEditing(id)
@@ -120,15 +115,9 @@ export function ActionsManage() {
               value={form.points_value}
               onChange={(e) => setForm((f) => ({ ...f, points_value: Number(e.target.value) }))}
             />
-            <Input
-              label="% Recompensa (opcional)"
-              type="number"
-              min={0}
-              max={100}
-              value={form.reward_percentage}
-              onChange={(e) => setForm((f) => ({ ...f, reward_percentage: e.target.value }))}
-              placeholder="Usar global si vacío"
-            />
+            <p className="text-xs text-app-muted">
+              Las solicitudes usan recompensa fija 1,2× (aceptación confirmada) y 0,2× si rechazo o caducidad; no depende de un % por acción.
+            </p>
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"

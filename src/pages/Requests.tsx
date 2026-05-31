@@ -103,6 +103,11 @@ export function Requests() {
       {showCreate && (
         <div className="bg-app-surface rounded-2xl p-6 border border-app-border">
           <h2 className="font-semibold text-app-foreground mb-3">Solicitar acción a otro usuario</h2>
+          <p className="text-xs text-app-muted mb-3">
+            La otra persona puede aceptar o rechazar (12 h). Si acepta, aún no se mueven puntos: tú debes{' '}
+            <strong className="text-app-foreground">confirmar</strong> que la hizo; entonces pierdes el valor de la acción y esa persona gana 1,2×.
+            Si rechaza o caduca, recuperas 0,2× del valor.
+          </p>
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-app-foreground mb-1">Usuario</label>

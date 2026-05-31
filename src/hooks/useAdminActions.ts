@@ -29,7 +29,6 @@ export function useCreateActionType() {
             name: data.name,
             description: data.description ?? '',
             points_value: data.points_value,
-            reward_percentage: data.reward_percentage ?? null,
             is_active: data.is_active ?? true,
           }),
         })
@@ -45,7 +44,6 @@ export function useCreateActionType() {
           name: data.name,
           description: data.description ?? '',
           points_value: data.points_value,
-          reward_percentage: data.reward_percentage ?? null,
           is_active: data.is_active ?? true,
         })
         .select()
@@ -66,7 +64,6 @@ export function useUpdateActionType() {
       if (data.name !== undefined) body.name = data.name
       if (data.description !== undefined) body.description = data.description
       if (data.points_value !== undefined) body.points_value = data.points_value
-      if (data.reward_percentage !== undefined) body.reward_percentage = data.reward_percentage
       if (data.is_active !== undefined) body.is_active = data.is_active
       if (h && Object.keys(body).length > 0) {
         const res = await fetch(`${h.url}/rest/v1/action_types?id=eq.${encodeURIComponent(id)}`, {
@@ -89,7 +86,6 @@ export function useUpdateActionType() {
           ...(data.name !== undefined && { name: data.name }),
           ...(data.description !== undefined && { description: data.description }),
           ...(data.points_value !== undefined && { points_value: data.points_value }),
-          ...(data.reward_percentage !== undefined && { reward_percentage: data.reward_percentage }),
           ...(data.is_active !== undefined && { is_active: data.is_active }),
         })
         .eq('id', id)

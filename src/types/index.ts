@@ -43,7 +43,6 @@ export interface ActionType {
   name: string
   description: string
   points_value: number
-  reward_percentage: number | null
   is_active: boolean
   created_at: string
 }
