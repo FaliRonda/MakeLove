@@ -53,6 +53,8 @@ supabase db push
 
 ## Paso 4: Desplegar la Edge Function `send-push`
 
+Los textos de las push (nombre de usuario y acción) se generan en `supabase/functions/send-push/index.ts`. Tras cambiar ese archivo, **vuelve a desplegar** la función para que producción use la versión nueva.
+
 Solo si tienes **Supabase CLI** instalada y el proyecto enlazado:
 
 ```bash

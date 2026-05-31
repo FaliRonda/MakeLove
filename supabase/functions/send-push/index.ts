@@ -1,5 +1,5 @@
 // Edge Function: envía Web Push cuando se inserta una notificación (invocada por Database Webhook)
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 
 const vapidPublic = Deno.env.get('VAPID_PUBLIC_KEY')
@@ -9,27 +9,155 @@ if (vapidPublic && vapidPrivate) {
   webpush.setVapidDetails('mailto:pinguslove@localhost', vapidPublic, vapidPrivate)
 }
 
-function messageForType(type: string, _referenceId: string | null): { title: string; body: string } {
+function displayUserName(user: { name?: string | null; email?: string | null } | null): string {
+  const n = user?.name?.trim()
+  if (n) return n
+  const e = user?.email?.trim()
+  if (e) {
+    const local = e.split('@')[0]?.trim()
+    if (local) return local
+    return e
+  }
+  return 'Usuario'
+}
+
+function displayActionName(action: { name?: string | null } | null): string {
+  return action?.name?.trim() || 'Acción'
+}
+
+type RequestCtx = { requesterName: string; targetName: string; actionName: string }
+type ClaimCtx = { claimerName: string; targetName: string; actionName: string; status?: string }
+
+function notificationBody(type: string, request?: RequestCtx | null, claim?: ClaimCtx | null): string {
   switch (type) {
     case 'action_request':
-      return { title: 'PingusLove', body: 'Nueva solicitud de acción' }
-    case 'performed_for_request':
-      return { title: 'PingusLove', body: 'Alguien indica que ha realizado una acción hacia ti. ¿Confirmas o cancelas?' }
-    case 'performed_for_confirmed':
-      return { title: 'PingusLove', body: 'Alguien ha confirmado que realizaste una acción. Has ganado 1.5× los puntos.' }
-    case 'performed_for_cancelled':
-      return { title: 'PingusLove', body: 'Alguien ha cancelado tu registro de acción realizada.' }
-    case 'request_rejected':
-      return { title: 'PingusLove', body: 'La solicitud fue rechazada. Has ganado 0.2× los puntos.' }
-    case 'request_expired':
-      return { title: 'PingusLove', body: 'La solicitud ha caducado. Has ganado 0.2× los puntos.' }
+      return request
+        ? `${request.requesterName} te solicita «${request.actionName}»`
+        : 'Nueva solicitud de acción'
     case 'request_accepted_pending':
-      return { title: 'PingusLove', body: 'Tu solicitud fue aceptada. Confírmala cuando se haya realizado.' }
+      return request
+        ? `${request.targetName} ha aceptado tu solicitud «${request.actionName}». Confírmala cuando la haya realizado.`
+        : 'Tu solicitud fue aceptada. Confírmala cuando se haya realizado.'
     case 'request_confirmed_target':
-      return { title: 'PingusLove', body: 'Han confirmado una solicitud que cumpliste. Los puntos se han abonado.' }
+      return request
+        ? `${request.requesterName} ha confirmado la solicitud «${request.actionName}». Los puntos se han abonado.`
+        : 'Han confirmado una solicitud que cumpliste. Los puntos se han abonado.'
+    case 'request_rejected':
+      return request
+        ? `${request.targetName} ha rechazado tu solicitud «${request.actionName}». Has ganado 0,2× los puntos.`
+        : 'Tu solicitud fue rechazada. Has ganado 0,2× los puntos.'
+    case 'request_expired':
+      return request
+        ? `Tu solicitud «${request.actionName}» para ${request.targetName} ha caducado. Has ganado 0,2× los puntos.`
+        : 'Tu solicitud ha caducado. Has ganado 0,2× los puntos.'
+    case 'performed_for_request':
+      if (claim) {
+        return `${claim.claimerName} indica que te ha hecho «${claim.actionName}». ¿Confirmas o cancelas?`
+      }
+      return 'Nueva acción realizada hacia ti. ¿Confirmas o cancelas?'
+    case 'performed_for_confirmed':
+      return claim
+        ? `${claim.targetName} ha confirmado «${claim.actionName}» que le indicaste. Has ganado 1,5× los puntos.`
+        : 'Han confirmado una acción que registraste. Has ganado 1,5× los puntos.'
+    case 'performed_for_cancelled':
+      return claim
+        ? `${claim.targetName} ha cancelado tu registro de «${claim.actionName}».`
+        : 'Han cancelado tu registro de acción realizada.'
+    case 'performed_for_you_confirmed':
+      return claim
+        ? `Has confirmado que ${claim.claimerName} te ha hecho «${claim.actionName}».`
+        : 'Has confirmado una acción realizada hacia ti.'
+    case 'performed_for_you_cancelled':
+      return claim
+        ? `Has cancelado el registro de que ${claim.claimerName} te hizo «${claim.actionName}».`
+        : 'Has cancelado un registro de acción realizada hacia ti.'
     default:
-      return { title: 'PingusLove', body: 'Tienes una nueva notificación' }
+      return 'Tienes una nueva notificación'
   }
+}
+
+const REQUEST_TYPES = new Set([
+  'action_request',
+  'request_accepted_pending',
+  'request_confirmed_target',
+  'request_rejected',
+  'request_expired',
+])
+
+const CLAIM_TYPES = new Set([
+  'performed_for_request',
+  'performed_for_confirmed',
+  'performed_for_cancelled',
+  'performed_for_you_confirmed',
+  'performed_for_you_cancelled',
+])
+
+async function loadRequestContext(
+  supabase: SupabaseClient,
+  requestId: string
+): Promise<RequestCtx | null> {
+  const { data: req, error } = await supabase
+    .from('action_requests')
+    .select('requester_id, target_user_id, action_type_id')
+    .eq('id', requestId)
+    .maybeSingle()
+  if (error || !req) return null
+
+  const [{ data: requester }, { data: target }, { data: action }] = await Promise.all([
+    supabase.from('users').select('name, email').eq('id', req.requester_id).maybeSingle(),
+    supabase.from('users').select('name, email').eq('id', req.target_user_id).maybeSingle(),
+    supabase.from('action_types').select('name').eq('id', req.action_type_id).maybeSingle(),
+  ])
+
+  return {
+    requesterName: displayUserName(requester),
+    targetName: displayUserName(target),
+    actionName: displayActionName(action),
+  }
+}
+
+async function loadClaimContext(
+  supabase: SupabaseClient,
+  claimId: string
+): Promise<ClaimCtx | null> {
+  const { data: claim, error } = await supabase
+    .from('action_claims')
+    .select('claimer_id, target_user_id, action_type_id, status')
+    .eq('id', claimId)
+    .maybeSingle()
+  if (error || !claim) return null
+
+  const [{ data: claimer }, { data: target }, { data: action }] = await Promise.all([
+    supabase.from('users').select('name, email').eq('id', claim.claimer_id).maybeSingle(),
+    supabase.from('users').select('name, email').eq('id', claim.target_user_id).maybeSingle(),
+    supabase.from('action_types').select('name').eq('id', claim.action_type_id).maybeSingle(),
+  ])
+
+  return {
+    claimerName: displayUserName(claimer),
+    targetName: displayUserName(target),
+    actionName: displayActionName(action),
+    status: claim.status ?? undefined,
+  }
+}
+
+async function resolvePushBody(
+  supabase: SupabaseClient,
+  type: string,
+  referenceId: string | null
+): Promise<string> {
+  if (!referenceId) {
+    return notificationBody(type, null, null)
+  }
+  if (REQUEST_TYPES.has(type)) {
+    const request = await loadRequestContext(supabase, referenceId)
+    return notificationBody(type, request, null)
+  }
+  if (CLAIM_TYPES.has(type)) {
+    const claim = await loadClaimContext(supabase, referenceId)
+    return notificationBody(type, null, claim)
+  }
+  return notificationBody(type, null, null)
 }
 
 interface WebhookPayload {
@@ -54,43 +182,8 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    let title = 'PingusLove'
-    let body = 'Tienes una nueva notificación'
-    if (type === 'action_request' && reference_id) {
-      const { data: req } = await supabase
-        .from('action_requests')
-        .select('requester:users!requester_id(name), action_types(name)')
-        .eq('id', reference_id)
-        .single()
-      const requesterName = (req?.requester as { name?: string } | null)?.name ?? 'Alguien'
-      const actionName = (req?.action_types as { name?: string } | null)?.name ?? 'acción'
-      title = 'PingusLove'
-      body = `${requesterName} te solicita un ${actionName}`
-    } else if (reference_id && ['performed_for_request', 'performed_for_confirmed', 'performed_for_cancelled', 'performed_for_you_confirmed', 'performed_for_you_cancelled'].includes(type)) {
-      const { data: claim } = await supabase
-        .from('action_claims')
-        .select('claimer:users!claimer_id(name), target:users!target_user_id(name), action_types(name)')
-        .eq('id', reference_id)
-        .single()
-      const claimerName = (claim?.claimer as { name?: string } | null)?.name ?? 'Alguien'
-      const targetName = (claim?.target as { name?: string } | null)?.name ?? 'alguien'
-      const actionName = (claim?.action_types as { name?: string } | null)?.name ?? 'acción'
-      if (type === 'performed_for_request') {
-        body = `${claimerName} indica que te ha hecho un ${actionName}. ¿Confirmas o cancelas?`
-      } else if (type === 'performed_for_confirmed') {
-        body = `${targetName} ha confirmado que le hiciste un ${actionName}. Has ganado 1.5× los puntos.`
-      } else if (type === 'performed_for_cancelled') {
-        body = `${targetName} ha cancelado tu registro de ${actionName} realizada hacia él/ella.`
-      } else if (type === 'performed_for_you_confirmed') {
-        body = `Has confirmado que ${claimerName} te ha hecho un ${actionName}.`
-      } else {
-        body = `Has cancelado el registro de que ${claimerName} te hizo un ${actionName}.`
-      }
-    } else {
-      const msg = messageForType(type, reference_id)
-      title = msg.title
-      body = msg.body
-    }
+    const title = 'PingusLove'
+    const body = await resolvePushBody(supabase, type, reference_id)
 
     const requestRelated = [
       'action_request',
@@ -128,14 +221,15 @@ Deno.serve(async (req: Request) => {
         )
         sent++
       } catch (e: unknown) {
-        const msg = String(e?.message ?? e)
+        const err = e as { message?: string }
+        const msg = String(err?.message ?? e)
         if (msg.includes('410') || msg.includes('Gone') || msg.includes('404')) {
           gone.push(sub.endpoint)
         }
       }
     }
 
-    if (gone.length > 0 && supabase) {
+    if (gone.length > 0) {
       await supabase.from('push_subscriptions').delete().in('endpoint', gone)
     }
 

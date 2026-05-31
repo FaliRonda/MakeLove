@@ -2,37 +2,15 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotifications, useMarkNotificationRead } from '@/hooks/useNotifications'
-import { useNotificationEnrichment, type ClaimEnrichment, type RequestEnrichment } from '@/hooks/useNotificationEnrichment'
+import {
+  useNotificationEnrichment,
+  type ClaimEnrichment,
+  type RequestEnrichment,
+} from '@/hooks/useNotificationEnrichment'
 import { usePendingClaimsForUser, useConfirmClaim, useCancelClaim } from '@/hooks/useClaims'
+import { notificationBody } from '@/lib/notificationMessages'
 import { formatDateTime } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
-
-function notificationMessageFallback(type: string): string {
-  switch (type) {
-    case 'action_request':
-      return 'Nueva solicitud de acción'
-    case 'performed_for_request':
-      return 'Alguien indica que ha realizado una acción hacia ti. ¿Confirmas o cancelas?'
-    case 'performed_for_confirmed':
-      return 'Alguien ha confirmado que realizaste una acción hacia él/ella. Has ganado 1.5× los puntos.'
-    case 'performed_for_cancelled':
-      return 'Alguien ha cancelado tu registro de acción realizada hacia él/ella.'
-    case 'performed_for_you_confirmed':
-      return 'Has confirmado que alguien te ha hecho una acción.'
-    case 'performed_for_you_cancelled':
-      return 'Has cancelado el registro de que alguien te hizo una acción.'
-    case 'request_rejected':
-      return 'La solicitud fue rechazada. Has ganado 0.2× los puntos (ver historial de saldo).'
-    case 'request_expired':
-      return 'La solicitud ha caducado. Has ganado 0.2× los puntos (ver historial de saldo).'
-    case 'request_accepted_pending':
-      return 'Tu solicitud fue aceptada. Confírmala en Solicitudes cuando se haya realizado.'
-    case 'request_confirmed_target':
-      return 'Una solicitud que cumpliste ha sido confirmada. Los puntos se han abonado.'
-    default:
-      return type
-  }
-}
 
 function notificationMessage(
   type: string,
@@ -40,37 +18,9 @@ function notificationMessage(
   claimMap: Record<string, ClaimEnrichment>,
   requestMap: Record<string, RequestEnrichment>
 ): string {
-  if (referenceId && type === 'action_request') {
-    const r = requestMap[referenceId]
-    if (r) return `${r.requesterName} te solicita un ${r.actionName}`
-  }
-  if (referenceId && type === 'request_accepted_pending') {
-    const r = requestMap[referenceId]
-    if (r) {
-      return `${r.targetName} ha aceptado tu solicitud de ${r.actionName}. Confírmala en Solicitudes cuando la haya realizado.`
-    }
-  }
-  if (referenceId && type === 'request_confirmed_target') {
-    const r = requestMap[referenceId]
-    if (r) {
-      return `${r.requesterName} ha confirmado la solicitud de ${r.actionName}. Los puntos se han abonado.`
-    }
-  }
-  if (referenceId && ['performed_for_request', 'performed_for_confirmed', 'performed_for_cancelled', 'performed_for_you_confirmed', 'performed_for_you_cancelled'].includes(type)) {
-    const c = claimMap[referenceId]
-    if (c) {
-      if (type === 'performed_for_request') {
-        if (c.status === 'confirmed') return `Has confirmado que ${c.claimerName} te ha hecho un ${c.actionName}.`
-        if (c.status === 'cancelled') return `Has cancelado el registro de que ${c.claimerName} te hizo un ${c.actionName}.`
-        return `${c.claimerName} indica que te ha hecho un ${c.actionName}. ¿Confirmas o cancelas?`
-      }
-      if (type === 'performed_for_confirmed') return `${c.targetName} ha confirmado que le hiciste un ${c.actionName}. Has ganado 1.5× los puntos.`
-      if (type === 'performed_for_cancelled') return `${c.targetName} ha cancelado tu registro de ${c.actionName} hacia él/ella.`
-      if (type === 'performed_for_you_confirmed') return `Has confirmado que ${c.claimerName} te ha hecho un ${c.actionName}.`
-      if (type === 'performed_for_you_cancelled') return `Has cancelado el registro de que ${c.claimerName} te hizo un ${c.actionName}.`
-    }
-  }
-  return notificationMessageFallback(type)
+  const request = referenceId ? requestMap[referenceId] : undefined
+  const claim = referenceId ? claimMap[referenceId] : undefined
+  return notificationBody(type, request, claim)
 }
 
 export function Notifications() {
