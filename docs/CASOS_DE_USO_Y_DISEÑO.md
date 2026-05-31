@@ -1,5 +1,9 @@
 # Casos de uso y diseño – MakeLove
 
+> **Estado (2026-05-31):** El diseño objetivo de este documento está **implementado** en código y migraciones (`006`–`007`, `016`–`018`, `030`, etc.), con una ampliación posterior: las solicitudes usan **aceptación + confirmación del solicitante** (`accepted_pending` → `confirm_request_completion`).  
+> Para el comportamiento vigente y módulos añadidos (Historia, Tienda, niveles…), ver **[ESTADO_PRODUCTO.md](ESTADO_PRODUCTO.md)**.  
+> Las secciones «Estado actual» más abajo describían el **antes** del diseño; se conservan como contexto histórico.
+
 ## Resumen de lo que pides
 
 1. **Solicitudes (igual que ahora en concepto, ajuste de puntos)**  

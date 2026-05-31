@@ -1,0 +1,15 @@
+---
+description: Flujo Supabase → confirmación usuario → commit/push Netlify
+alwaysApply: true
+---
+
+# Despliegue — MakeLove
+
+Si añades o modificas `supabase/migrations/*.sql` o RPCs:
+
+1. Indica al usuario **qué archivo** ejecutar en Supabase (SQL Editor o CLI).
+2. **Espera confirmación** de que la migración está aplicada en remoto antes de commit/push.
+3. Tras confirmación: commits **ordenados** (docs → db/feat → fixes UI sueltos); mensajes en estilo del repo (`feat(db):`, `docs:`, `fix:`).
+4. **`git push`** solo si el usuario pide redesplegar en Netlify o confirma el push.
+
+Ver [AGENTS.md](../../AGENTS.md) § Despliegue.

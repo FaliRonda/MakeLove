@@ -2,6 +2,9 @@
 
 Sistema de puntos y acciones para compartir amor. Aplicación web mobile-first.
 
+> **Agentes / IA:** empieza por [AGENTS.md](AGENTS.md) y [docs/ESTADO_PRODUCTO.md](docs/ESTADO_PRODUCTO.md).  
+> **Índice de docs:** [docs/README.md](docs/README.md).
+
 ## Configuración inicial
 
 ### 1. Instalar dependencias
@@ -13,7 +16,7 @@ npm install
 ### 2. Configurar Supabase
 
 1. Crea un proyecto en [supabase.com](https://supabase.com)
-2. En el **SQL Editor**, ejecuta el contenido de `supabase/migrations/001_initial_schema.sql`
+2. En el **SQL Editor**, ejecuta las migraciones de `supabase/migrations/` **en orden numérico** (`001` … última). No basta con solo `001_initial_schema.sql`.
 3. Copia la URL y la anon key desde **Settings → API**
 4. Crea un archivo `.env` en la raíz:
 
@@ -38,17 +41,22 @@ Tras ejecutar el schema, regístrate en la app. Luego en Supabase **Table Editor
 |---------|-------------|
 | `npm run dev` | Servidor de desarrollo |
 | `npm run build` | Build de producción |
+| `npm run typecheck` | Comprobación TypeScript (`tsc -b`) |
 | `npm run preview` | Vista previa del build |
 
-## Funcionalidades
+## Funcionalidades (resumen)
 
 - **Auth:** Login/registro (100 pts iniciales)
-- **Acciones:** Marcar realizadas, ganar puntos
-- **Solicitudes:** Pedir a otro usuario que haga una acción (caducan en 12h)
-- **Recompensas:** % configurable; compensación si rechaza
-- **Calendario:** Historial con filtros
-- **Notificaciones:** Badge y listado
-- **Admin:** CRUD acciones y gestión de usuarios
+- **Acciones:** Listar y crear tipos; **realizar hacia otro** (claim con confirmación de B, +1,5× para A)
+- **Solicitudes:** Pedir acción a otro (12 h); B acepta → A confirma → pago (1,2× a B); rechazo/caducidad 0,2× a A
+- **Dashboard:** Ranking, meta semanal, historial de saldo, preview de Historia
+- **Historia:** Sagas y misiones (piedritas, recompensas)
+- **Tienda:** Cosméticos (colores, badges, marcos de avatar)
+- **Calendario / notificaciones / perfil** con avatar e inventario
+- **Admin:** Acciones, usuarios, parejas, contenido de Historia
+- **Push (opcional):** ver [docs/PUSH_NOTIFICATIONS.md](docs/PUSH_NOTIFICATIONS.md)
+
+Detalle y reglas: [docs/ESTADO_PRODUCTO.md](docs/ESTADO_PRODUCTO.md).
 
 ## Despliegue en Netlify
 

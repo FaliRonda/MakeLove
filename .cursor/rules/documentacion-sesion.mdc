@@ -1,0 +1,20 @@
+---
+description: Actualizar documentación al cerrar cambios funcionales en MakeLove
+alwaysApply: true
+---
+
+# Documentación por sesión — MakeLove
+
+Al **completar** una tarea que cambie comportamiento, esquema, rutas o setup:
+
+1. Lee [AGENTS.md](../../AGENTS.md) y actualiza [docs/ESTADO_PRODUCTO.md](../../docs/ESTADO_PRODUCTO.md) si cambió el producto.
+2. Si el cambio implementa o altera un diseño acordado, actualiza [docs/CASOS_DE_USO_Y_DISEÑO.md](../../docs/CASOS_DE_USO_Y_DISEÑO.md) (marca implementado o mueve a pendientes).
+3. Si cambian comandos, env o deploy, actualiza [README.md](../../README.md).
+4. Si cambian colores/tema, actualiza [docs/TEMA.md](../../docs/TEMA.md).
+5. Si añades migración SQL, menciona el número en ESTADO_PRODUCTO o en la sección de BD de AGENTS.md cuando sea relevante para reglas de negocio.
+
+**No** dejes el README contradiciendo ESTADO_PRODUCTO. Ante duda, **el código y el SQL mandan**; actualiza los `.md` después.
+
+Si la tarea fue solo refactor interno sin cambio de comportamiento visible, no hace falta tocar docs de producto.
+
+Si hubo migración SQL, sigue además la regla **despliegue-supabase-netlify** (confirmación del usuario antes de commit/push).
