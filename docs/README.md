@@ -10,6 +10,7 @@ Empieza por **[../AGENTS.md](../AGENTS.md)** y luego **[ESTADO_PRODUCTO.md](ESTA
 |-----------|-----------|------------------|
 | [ESTADO_PRODUCTO.md](ESTADO_PRODUCTO.md) | Comportamiento actual, rutas, reglas de puntos | Cambie funcionalidad o flujos |
 | [CASOS_DE_USO_Y_DISEÑO.md](CASOS_DE_USO_Y_DISEÑO.md) | Diseño objetivo y decisiones de producto | Se acuerde nuevo diseño o se cierre un gap |
+| [HISTORIA_MISIONES.md](HISTORIA_MISIONES.md) | Inventario de misiones, métricas y mapeo de IDs | Nuevas sagas/misiones o misiones por acción concreta |
 | [TEMA.md](TEMA.md) | Paleta y clases Tailwind `app-*` | Cambie branding/colores |
 | [AVATAR_FRAMES_REFERENCE.md](AVATAR_FRAMES_REFERENCE.md) | Marcos de avatar en tienda | Nuevos assets de marcos |
 | [PUSH_NOTIFICATIONS.md](PUSH_NOTIFICATIONS.md) | Push web (arquitectura) | Cambie flujo push |

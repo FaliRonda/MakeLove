@@ -70,6 +70,7 @@ Moneda secundaria para Historia/tienda (`piedritas_balance`, migración `023+`).
 - Estado activo vía RPCs (`get_active_story_state`, etc.).
 - Admin: `/admin/historia`.
 - Contenido seed en migraciones (`027`, `037`, `038`…).
+- Inventario y reglas de objetivos: [HISTORIA_MISIONES.md](HISTORIA_MISIONES.md). Misiones seed son **genéricas**; las nuevas pueden enlazar `action_type_id` (migración `042`, admin Historia).
 
 ## Tienda e inventario
 
