@@ -21,7 +21,9 @@ import {
   type StoryStatus,
   type MissionTargetType,
   type MissionMetricType,
+  type MissionRequirementInput,
 } from '@/hooks/useAdminHistoria'
+import { useActiveActionTypes } from '@/hooks/useActions'
 import { formatDate } from '@/lib/utils'
 
 // ---- Labels ----
@@ -33,13 +35,19 @@ const STATUS_LABELS: Record<StoryStatus, string> = {
 }
 
 const METRIC_LABELS: Record<MissionMetricType, string> = {
-  actions_done: 'Acciones realizadas',
+  actions_done: 'Acciones realizadas (claim confirmado)',
   requests_sent_confirmed: 'Solicitudes enviadas y confirmadas',
   requests_received_confirmed: 'Solicitudes recibidas y confirmadas',
   points_gained: 'Puntos ganados',
   levels_gained: 'Niveles subidos',
   prior_missions_complete: 'Misiones previas completadas (pool + cantidad)',
 }
+
+const METRICS_WITH_ACTION_FILTER: MissionMetricType[] = [
+  'actions_done',
+  'requests_sent_confirmed',
+  'requests_received_confirmed',
+]
 
 // ---- Forms ----
 
@@ -160,11 +168,12 @@ function MissionForm({
     description: string
     target_type: MissionTargetType
     reward_piedritas: number
-    requirement?: { metric_type: MissionMetricType; required_amount: number }
+    requirement?: MissionRequirementInput
   }) => void
   onCancel: () => void
   isPending: boolean
 }) {
+  const { data: actionTypes = [] } = useActiveActionTypes()
   const [title, setTitle] = useState(initial?.title ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [orderNumber, setOrderNumber] = useState(String(initial?.order_number ?? ''))
@@ -174,9 +183,16 @@ function MissionForm({
     initial?.requirement?.metric_type ?? 'actions_done'
   )
   const [requiredAmount, setRequiredAmount] = useState(String(initial?.requirement?.required_amount ?? '1'))
+  const [actionTypeId, setActionTypeId] = useState(initial?.requirement?.action_type_id ?? '')
+
+  const canPickAction = METRICS_WITH_ACTION_FILTER.includes(metricType)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const resolvedActionId = canPickAction && actionTypeId ? actionTypeId : null
+    if (resolvedActionId && targetType === 'couple') {
+      return
+    }
     onSave({
       chapter_id: chapterId,
       order_number: Number(orderNumber),
@@ -184,7 +200,11 @@ function MissionForm({
       description,
       target_type: targetType,
       reward_piedritas: Number(rewardPiedritas),
-      requirement: { metric_type: metricType, required_amount: Number(requiredAmount) },
+      requirement: {
+        metric_type: metricType,
+        required_amount: Number(requiredAmount),
+        action_type_id: resolvedActionId,
+      },
     })
   }
 
@@ -210,7 +230,11 @@ function MissionForm({
           <label className="block text-sm font-medium text-app-foreground mb-1">Tipo</label>
           <select
             value={targetType}
-            onChange={(e) => setTargetType(e.target.value as MissionTargetType)}
+            onChange={(e) => {
+              const v = e.target.value as MissionTargetType
+              setTargetType(v)
+              if (v === 'couple') setActionTypeId('')
+            }}
             className="w-full px-4 py-2 rounded-lg border border-app-border-hover bg-app-surface text-app-foreground focus:outline-none focus:ring-2 focus:ring-app-accent"
           >
             <option value="individual">Individual</option>
@@ -235,7 +259,11 @@ function MissionForm({
             <label className="block text-sm font-medium text-app-foreground mb-1">Métrica</label>
             <select
               value={metricType}
-              onChange={(e) => setMetricType(e.target.value as MissionMetricType)}
+              onChange={(e) => {
+                const v = e.target.value as MissionMetricType
+                setMetricType(v)
+                if (!METRICS_WITH_ACTION_FILTER.includes(v)) setActionTypeId('')
+              }}
               className="w-full px-4 py-2 rounded-lg border border-app-border-hover bg-app-surface text-app-foreground focus:outline-none focus:ring-2 focus:ring-app-accent"
             >
               {(Object.keys(METRIC_LABELS) as MissionMetricType[]).map((k) => (
@@ -252,6 +280,33 @@ function MissionForm({
             required
           />
         </div>
+        {canPickAction && targetType === 'individual' && (
+          <div className="mt-3">
+            <label className="block text-sm font-medium text-app-foreground mb-1">
+              Acción concreta (opcional)
+            </label>
+            <select
+              value={actionTypeId}
+              onChange={(e) => setActionTypeId(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg border border-app-border-hover bg-app-surface text-app-foreground focus:outline-none focus:ring-2 focus:ring-app-accent"
+            >
+              <option value="">Cualquier acción</option>
+              {actionTypes.map((at) => (
+                <option key={at.id} value={at.id}>
+                  {at.name} ({at.points_value} pts)
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-app-muted mt-1">
+              Para «haz esta acción», solo cuenta el claim confirmado de ese tipo.
+            </p>
+          </div>
+        )}
+        {canPickAction && targetType === 'couple' && (
+          <p className="text-xs text-amber-600/90 mt-2">
+            Las misiones en pareja no pueden filtrar por acción concreta. Usa tipo Individual o deja la acción genérica.
+          </p>
+        )}
       </div>
 
       <div className="flex gap-2 pt-1">
@@ -280,6 +335,7 @@ export function HistoriaManage() {
   const { data: stories = [], isLoading: loadingStories } = useStoriesList()
   const { data: chapters = [], isLoading: loadingChapters } = useChaptersByStory(selectedStoryId)
   const { data: missions = [], isLoading: loadingMissions } = useMissionsByChapter(selectedChapterId)
+  const { data: actionTypes = [] } = useActiveActionTypes()
 
   const createStory = useCreateStory()
   const updateStory = useUpdateStory()
@@ -628,6 +684,14 @@ export function HistoriaManage() {
                         Req:{' '}
                         <span className="text-app-foreground">
                           {METRIC_LABELS[mission.requirement.metric_type]} × {mission.requirement.required_amount}
+                          {mission.requirement.action_type_id && (
+                            <>
+                              {' '}
+                              · acción{' '}
+                              {actionTypes.find((a) => a.id === mission.requirement?.action_type_id)?.name ??
+                                mission.requirement.action_type_id.slice(0, 8)}
+                            </>
+                          )}
                         </span>
                       </p>
                     )}

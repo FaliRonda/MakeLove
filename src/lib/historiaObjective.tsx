@@ -13,17 +13,31 @@ function nStrong(n: number): ReactNode {
 }
 
 /** Frases de objetivo alineadas con los tipos de métrica del backend. */
+function actionLabel(name: string | null | undefined): ReactNode {
+  if (!name) return null
+  return <span className="font-semibold text-app-foreground">{name}</span>
+}
+
 export function missionObjectiveLine(
   metricType: MissionMetricType,
   amount: number,
   targetType: 'individual' | 'couple',
-  priorPoolSize?: number
+  priorPoolSize?: number,
+  actionTypeName?: string | null
 ): ReactNode {
   const n = nStrong(amount)
   const pool = priorPoolSize ?? amount
+  const action = actionLabel(actionTypeName)
 
   switch (metricType) {
     case 'actions_done':
+      if (action) {
+        return (
+          <>
+            Realiza hacia tu pareja {n} {action} con claim confirmado durante la historia
+          </>
+        )
+      }
       if (targetType === 'couple') {
         return (
           <>
@@ -39,6 +53,13 @@ export function missionObjectiveLine(
         </>
       )
     case 'requests_sent_confirmed':
+      if (action) {
+        return (
+          <>
+            Envía {n} solicitud{amount === 1 ? '' : 'es'} de {action} que tu pareja confirme durante la historia
+          </>
+        )
+      }
       if (targetType === 'couple') {
         return (
           <>
@@ -53,6 +74,14 @@ export function missionObjectiveLine(
         </>
       )
     case 'requests_received_confirmed':
+      if (action) {
+        return (
+          <>
+            Recibe {n} solicitud{amount === 1 ? '' : 'es'} de {action} confirmada{amount === 1 ? '' : 's'} durante la
+            historia
+          </>
+        )
+      }
       if (targetType === 'couple') {
         return (
           <>

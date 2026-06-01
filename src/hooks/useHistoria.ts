@@ -11,6 +11,8 @@ export type HistoriaMissionRequirement = {
   metric_type: string
   required_amount: number
   prior_mission_ids?: string[] | null
+  action_type_id?: string | null
+  action_type_name?: string | null
 }
 
 export type HistoriaMissionRewardShopItem = {

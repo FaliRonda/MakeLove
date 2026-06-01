@@ -39,6 +39,14 @@ export interface MissionRequirement {
   metric_type: MissionMetricType
   required_amount: number
   prior_mission_ids?: string[] | null
+  action_type_id?: string | null
+}
+
+export type MissionRequirementInput = {
+  metric_type: MissionMetricType
+  required_amount: number
+  prior_mission_ids?: string[] | null
+  action_type_id?: string | null
 }
 
 export interface Mission {
@@ -285,7 +293,7 @@ export function useDeleteChapter() {
 // ---- Mission mutations ----
 
 type CreateMissionInput = Omit<Mission, 'id' | 'created_at' | 'requirement'> & {
-  requirement?: { metric_type: MissionMetricType; required_amount: number }
+  requirement?: MissionRequirementInput
 }
 
 export function useCreateMission() {
@@ -321,7 +329,7 @@ export function useCreateMission() {
 type UpdateMissionInput = Partial<Omit<Mission, 'created_at' | 'requirement'>> & {
   id: string
   chapter_id: string
-  requirement?: { metric_type: MissionMetricType; required_amount: number } | null
+  requirement?: MissionRequirementInput | null
 }
 
 export function useUpdateMission() {
@@ -346,6 +354,8 @@ export function useUpdateMission() {
               mission_id: id,
               metric_type: requirement.metric_type,
               required_amount: requirement.required_amount,
+              prior_mission_ids: requirement.prior_mission_ids ?? null,
+              action_type_id: requirement.action_type_id ?? null,
             })
           }
         } else {
@@ -356,6 +366,8 @@ export function useUpdateMission() {
               mission_id: id,
               metric_type: requirement.metric_type,
               required_amount: requirement.required_amount,
+              prior_mission_ids: requirement.prior_mission_ids ?? null,
+              action_type_id: requirement.action_type_id ?? null,
             })
           }
         }

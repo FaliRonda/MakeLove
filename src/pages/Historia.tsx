@@ -208,7 +208,8 @@ export function Historia() {
                                       mission.target_type,
                                       Array.isArray(req.prior_mission_ids) && req.prior_mission_ids.length > 0
                                         ? req.prior_mission_ids.length
-                                        : undefined
+                                        : undefined,
+                                      req.action_type_name ?? null
                                     )}
                                   </span>
                                 </p>
